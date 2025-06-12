@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('barcos', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_jugador_partida');
-            $table->string('coordenada'); // Ejemplo: "A3"
+            $table->string('coordenada'); 
             $table->boolean('hundido')->default(false);
             $table->timestamp('creado_en')->useCurrent();
             $table->timestamps();
