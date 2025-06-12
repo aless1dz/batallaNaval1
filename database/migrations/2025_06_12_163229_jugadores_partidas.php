@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamp('creado_en')->useCurrent();
             $table->timestamps();
             
-            $table->foreign('id_usuario')->references('id')->on('usuarios')->onDelete('cascade');
+            $table->foreign('id_usuario')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('id_partida')->references('id')->on('partidas')->onDelete('cascade');
             $table->unique(['id_usuario', 'id_partida']);
         });

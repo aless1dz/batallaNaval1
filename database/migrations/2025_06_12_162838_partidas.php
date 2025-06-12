@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('creada_en')->useCurrent();
             $table->timestamps();
             
-            $table->foreign('ganador_id')->references('id')->on('usuarios')->onDelete('set null');
+            $table->foreign('ganador_id')->references('id')->on('users')->onDelete('set null');
         });
     }
 
