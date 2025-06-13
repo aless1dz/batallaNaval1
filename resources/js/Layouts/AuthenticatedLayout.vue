@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen bg-primary">
+    <div class="min-h-screen bg-gray-100">
         <!-- Overlay para móvil -->
         <div
             v-if="showingSidebar"
@@ -9,7 +9,7 @@
 
         <!-- Sidebar -->
         <aside
-            class="fixed inset-y-0 left-0 w-64 bg-primary border-r border-gray-200 z-30 transform transition-transform duration-300 ease-in-out lg:translate-x-0"
+            class="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-30 transform transition-transform duration-300 ease-in-out lg:translate-x-0"
             :class="{
                 'translate-x-0': showingSidebar,
                 '-translate-x-full': !showingSidebar,
@@ -23,7 +23,7 @@
                     <ApplicationLogo
                         class="block h-9 w-auto fill-current text-gray-800"
                     />
-                    <span class="ml-3 text-xl font-semibold text-white"
+                    <span class="ml-3 text-xl font-semibold"
                         > Hola {{$page.props.auth.user.name}}</span
                     >
                 </div>
@@ -187,7 +187,7 @@
         </aside>
 
         <div class="lg:pl-64">
-            <nav class="bg-primary border-b border-gray-100">
+            <nav class="bg-white border-b border-gray-100">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex justify-between h-16">
                         <div class="flex items-center">
@@ -213,10 +213,9 @@
                             <div
                                 class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex"
                             >
-                                <NavLink 
+                                <NavLink
                                     :href="route('dashboard')"
                                     :active="route().current('dashboard')"
-                                    class="text-white"
                                 >
                                     Batalla Naval
                                 </NavLink>
