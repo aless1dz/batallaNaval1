@@ -19,7 +19,7 @@ export default {
             required: true,
         },
         status: {
-            type: String,
+            type: [String, null],
             required: true,
         },
     },
