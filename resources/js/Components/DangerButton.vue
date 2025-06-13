@@ -8,8 +8,6 @@ export default {
     },
 };
 </script>
-
-
 <template>
     <button
         :type="type"
