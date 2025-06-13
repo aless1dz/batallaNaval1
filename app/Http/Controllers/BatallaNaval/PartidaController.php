@@ -22,7 +22,7 @@ class PartidaController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('Partidas/Index', [
+        return Inertia::render('BatallaNaval/Index', [
             'partidas' => $partidas
         ]);
     }
@@ -168,18 +168,9 @@ class PartidaController extends Controller
         ]);
     }
 
-    public function partidasDisponibles()
-    {
-        $partidas = Partida::where('estado', 'esperando')
-            ->whereDoesntHave('jugadores', function ($query) {
-                $query->where('id_usuario', Auth::id());
-            })
-            ->with(['jugadores.usuario'])
-            ->get();
-
-        return Inertia::render('Partidas/Disponibles', [
-            'partidas' => $partidas
-        ]);
+    public function listarPartidas() {
+        $partidas = Partida::with('jugadores')->get();
+        return response()->json(['partidas' => $partidas]);
     }
 
     public function estadoPartida($id)

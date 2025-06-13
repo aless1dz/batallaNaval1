@@ -50,16 +50,14 @@ class User extends Authenticatable
         return $this->belongsToMany(
             Partida::class,
             'jugadores_partida',
-            'id_usuario',
+            'id_user',
             'id_partida'
         );
     }
 
-    /**
-     * Relación: JugadorPartida (si tienes el modelo).
-     */
+    
     public function jugadoresPartida()
     {
-        return $this->hasMany(JugadorPartida::class, 'id_usuario');
+        return $this->hasMany(JugadorPartida::class, 'id_user');
     }
 }

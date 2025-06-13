@@ -11,8 +11,11 @@ class Partida extends Model
     use HasFactory;
 
     protected $fillable = [
+        'nombre',
+        'descripcion',
         'estado',
         'ganador_id',
+        'creada_en',
     ];
 
     protected $casts = [
@@ -22,7 +25,7 @@ class Partida extends Model
     // Relaciones
     public function ganador()
     {
-        return $this->belongsTo(Usuario::class, 'ganador_id');
+        return $this->belongsTo(User::class, 'ganador_id');
     }
 
     public function jugadores()
@@ -32,7 +35,12 @@ class Partida extends Model
 
     public function usuarios()
     {
-        return $this->belongsToMany(Usuario::class, 'jugadores_partida', 'id_partida', 'id_usuario');
+        return $this->belongsToMany(
+            User::class,
+            'jugadores_partida',
+            'id_partida',
+            'id_usuario'
+        );
     }
 
     public function movimientos()
@@ -40,7 +48,6 @@ class Partida extends Model
         return $this->hasMany(Movimiento::class, 'id_partida');
     }
 
-    // Métodos personalizados
     public function puedeUnirse()
     {
         return $this->jugadores()->count() < 2 && $this->estado === 'esperando';
@@ -51,7 +58,6 @@ class Partida extends Model
         if ($this->jugadores()->count() === 2) {
             $this->estado = 'en_progreso';
             
-            // Asignar turno al primer jugador
             $primerJugador = $this->jugadores()->first();
             $primerJugador->es_turno = true;
             $primerJugador->save();
@@ -69,18 +75,18 @@ class Partida extends Model
         $this->save();
     }
 
-    public function obtenerRival($usuarioId)
+    public function obtenerRival($userId)
     {
         return $this->jugadores()
-            ->where('id_usuario', '!=', $usuarioId)
-            ->with('usuario')
+            ->where('id_user', '!=', $userId)
+            ->with('user')
             ->first();
     }
 
-    public function obtenerJugador($usuarioId)
+    public function obtenerJugador($userId)
     {
         return $this->jugadores()
-            ->where('id_usuario', $usuarioId)
+            ->where('id_user', $userId)
             ->first();
     }
 }

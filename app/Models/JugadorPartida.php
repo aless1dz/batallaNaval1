@@ -13,7 +13,7 @@ class JugadorPartida extends Model
     protected $table = 'jugadores_partida';
     
     protected $fillable = [
-        'id_usuario',
+        'id_user',
         'id_partida',
         'es_turno',
     ];
@@ -23,10 +23,9 @@ class JugadorPartida extends Model
         'creado_en' => 'datetime',
     ];
 
-    // Relaciones
     public function usuario()
     {
-        return $this->belongsTo(Usuario::class, 'id_usuario');
+        return $this->belongsTo(Usuario::class, 'id_user');
     }
 
     public function partida()
@@ -49,21 +48,20 @@ class JugadorPartida extends Model
         return $this->hasMany(Movimiento::class, 'id_defensor');
     }
 
-    // Métodos personalizados
     public function generarTablero()
     {
         $coordenadas = [];
         $letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
         $numeros = [1, 2, 3, 4, 5, 6, 7, 8];
 
-        // Generar todas las coordenadas posibles
+       
         foreach ($letras as $letra) {
             foreach ($numeros as $numero) {
                 $coordenadas[] = $letra . $numero;
             }
         }
 
-        // Seleccionar 15 coordenadas aleatorias para los barcos
+        
         $barcosCoords = array_slice(array_shuffle($coordenadas), 0, 15);
         
         foreach ($barcosCoords as $coord) {
@@ -80,7 +78,7 @@ class JugadorPartida extends Model
         $this->es_turno = false;
         $this->save();
 
-        // Dar turno al rival
+       
         $rival = $this->partida->jugadores()
             ->where('id', '!=', $this->id)
             ->first();
