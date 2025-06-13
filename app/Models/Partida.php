@@ -11,6 +11,8 @@ class Partida extends Model
     use HasFactory;
 
     protected $fillable = [
+        'nombre',
+        'descripcion',
         'estado',
         'ganador_id',
     ];

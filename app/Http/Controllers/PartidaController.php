@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/PartidaController.php
 
 namespace App\Http\Controllers;
 
@@ -34,7 +33,14 @@ class PartidaController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'required|string|max:1000',
+        ]);
+
         $partida = Partida::create([
+            'nombre' => $request->input('nombre'),
+            'descripcion' => $request->input('descripcion'),
             'estado' => 'esperando'
         ]);
 
@@ -43,8 +49,6 @@ class PartidaController extends Controller
             'id_partida' => $partida->id,
             'es_turno' => false
         ]);
-
-        $jugadorPartida->generarTablero();
 
         return redirect()->route('partidas.show', $partida->id);
     }
@@ -128,14 +132,12 @@ class PartidaController extends Controller
             return response()->json(['error' => 'Ya atacaste esta coordenada'], 400);
         }
 
-        
         $barco = Barco::where('id_jugador_partida', $rival->id)
             ->where('coordenada', $request->coordenada)
             ->first();
 
         $acierto = $barco !== null;
 
-        
         Movimiento::create([
             'id_partida' => $partida->id,
             'id_atacante' => $jugadorActual->id,
@@ -144,10 +146,8 @@ class PartidaController extends Controller
             'acierto' => $acierto
         ]);
 
-       
         if ($acierto) {
             $barco->hundir();
-            
             
             if ($rival->todosLosBarcosHundidos()) {
                 $partida->finalizarPartida(Auth::id());

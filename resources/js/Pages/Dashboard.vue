@@ -44,12 +44,29 @@
                 </template>
                 <template #body>
                     <form @submit.prevent="crearPartida">
-                        <input
-                            v-model="nombrePartida"
-                            type="text"
-                            placeholder="Nombre"
-                            class="border p-2 w-full mb-4 rounded"
-                        />
+
+                        <div class="mb-4">
+                            <InputLabel for="nombrePartida" value="Nombre de la partida" />
+                            <TextInput
+                                id="nombrePartida"
+                                v-model="form.nombre"
+                                type="text"
+                                class="mt-1 block w-full"
+                            />
+                            <InputError :message="$page.props.errors.nombre" class="mt-2" />
+                        </div>
+
+                        <div class="mb-4">
+                            <InputLabel for="descripcionPartida" value="Descripción" />
+                            <TextInput
+                                id="descripcionPartida"
+                                v-model="form.descripcion"
+                                type="text"
+                                class="mt-1 block w-full"
+                            />
+                            <InputError :message="$page.props.errors.descripcion" class="mt-2" />
+                        </div>
+
                         <PrimaryButton type="submit">Crear</PrimaryButton>
                     </form>
                 </template>
@@ -62,6 +79,9 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import Modal from "@/Components/Modal.vue";
+import InputLabel from "@/Components/InputLabel.vue";
+import InputError from "@/Components/InputError.vue";
+import TextInput from "@/Components/TextInput.vue";
 import { Head } from "@inertiajs/vue3";
 
 export default {
@@ -70,12 +90,18 @@ export default {
         Head,
         PrimaryButton,
         Modal,
+        InputLabel,
+        InputError,
+        TextInput,
     },
 
     data() {
         return {
             showModal: false,
-            nombrePartida: '',
+            form: {
+                nombre: '',
+                descripcion: '',
+            },
         };
     },
     methods: {
@@ -83,8 +109,16 @@ export default {
             this.showModal = true;
         },
         crearPartida() {
-            console.log('Creando partida:', this.nombrePartida);
-            this.showModal = false;
+            this.$inertia.post(route('partidas.store'), {
+                nombre: this.form.nombre,
+                descripcion: this.form.descripcion,
+            }, {
+                onSuccess: () => {
+                    this.showModal = false;
+                    this.nombrePartida = '';
+                    this.descripcionPartida = '';
+                },
+            });
         }
     },
 };
