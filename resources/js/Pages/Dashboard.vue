@@ -29,7 +29,7 @@
                         <PrimaryButton class="mr-4" @click="openModal">
                             Crear nueva partida
                         </PrimaryButton>
-                        <PrimaryButton @click="$inertia.visit('/batallanaval/juego')">
+                        <PrimaryButton >
                             Unirse a una partida
                         </PrimaryButton>
                     </div>
@@ -72,12 +72,6 @@
                 </template>
             </Modal>
         </div>
-
-        <ModalCrear
-            :show="mostrarModal"
-            @cerrar="mostrarModal = false"
-            @crear="handleCrearJuego"
-        />
     </AuthenticatedLayout>
 </template>
 
@@ -121,8 +115,8 @@ export default {
             }, {
                 onSuccess: () => {
                     this.showModal = false;
-                    this.nombrePartida = '';
-                    this.descripcionPartida = '';
+                    this.nombre = '';
+                    this.descripcion = '';
                 },
             });
         }

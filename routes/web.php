@@ -3,9 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\JuegoController;
-use App\Http\Controllers\MovimientosController;
-use App\Http\Controllers\PartidaController;;
+use App\Http\Controllers\PartidaController;
 use Inertia\Inertia;
 
 /*
@@ -38,13 +36,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::get('/batallanaval/juego', [PartidaController::class, 'index'])->name('batallanaval.juego.index');
-Route::get('/batallanaval/crear', [PartidaController::class, 'crearPartidaForm'])->name('batallanaval.juego.crear');
-Route::post('/batallanaval/crear', [PartidaController::class, 'crearPartida'])->name('batallanaval.juego.crear');
-Route::get('batallanaval/partidas', [PartidaController::class, 'listarPartidas']);
-Route::post('/batallanaval/unirse/{id}', [PartidaController::class, 'unirse'])->name('batallanaval.juego.unirse');
-Route::post('/batallanaval/salir/{id}', [PartidaController::class, 'salirPartida'])->name('batallanaval.juego.salir');
-Route::post('/batallanaval/eliminar/{id}', [PartidaController::class, 'eliminarJuego'])->name('batallanaval.juego.eliminar');
-Route::post('/batallanaval/finalizar/{id}', [PartidaController::class, 'finalizarPartida'])->name('batallanaval.juego.finalizar');   
+// Rutas para Partidas
+
+Route::post('Partidas/store', [PartidaController::class, 'store'])->name('partidas.store');
+
+Route::get('SalaEspera/{id}', [PartidaController::class, 'SalaEspera'])->name('partidas.espera');
+
+Route::get('partidas/{id}/verificar-estado', [PartidaController::class, 'verificarEstado'])->name('partida.verificar-estado');
+    
 
 require __DIR__.'/auth.php';

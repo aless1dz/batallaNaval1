@@ -21,7 +21,7 @@ class PartidaController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('Partidas/Index', [
+        return Inertia::render('BatallaNaval/Index', [
             'partidas' => $partidas
         ]);
     }
@@ -34,23 +34,54 @@ class PartidaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'required|string|max:1000',
+            'nombre' => 'sometimes|string|max:255',
+            'descripcion' => 'sometimes|string|max:1000',
         ]);
 
-        $partida = Partida::create([
-            'nombre' => $request->input('nombre'),
-            'descripcion' => $request->input('descripcion'),
-            'estado' => 'esperando'
-        ]);
+            $partida = Partida::create([
+                'nombre' => $request->input('nombre', 'Partida de ' . Auth::user()->name),
+                'descripcion' => $request->input('descripcion', ''),
+                'estado' => 'esperando'
+            ]);
 
-        $jugadorPartida = JugadorPartida::create([
-            'id_usuario' => Auth::id(),
-            'id_partida' => $partida->id,
-            'es_turno' => false
-        ]);
+            $jugadorPartida = JugadorPartida::create([
+                'id_usuario' => Auth::id(),
+                'id_partida' => $partida->id,
+                'es_turno' => false
+            ]);
 
-        return redirect()->route('partidas.show', $partida->id);
+        return redirect()->route('partidas.espera', $partida->id)->with('success', 'Partida creada exitosamente.');
+    }
+
+    public function SalaEspera($id) {
+        $partida = Partida::findOrFail($id);
+
+        $jugadorActual = JugadorPartida::where('id_partida', $partida->id)
+            ->where('id_usuario', Auth::id())
+            ->first();
+
+        $totalJugadores = JugadorPartida::where('id_partida', $partida->id)->count();
+        if ($totalJugadores >= 2) {
+            return redirect()->route('dashboard', $id);
+        }
+
+        return Inertia::render('Partidas/SalaEspera', [
+            'partida' => $partida,
+            'jugadorActual' => $jugadorActual,
+            'totalJugadores' => $totalJugadores
+        ]);
+    }
+
+    public function verificarEstado($id) {
+
+        $partida = Partida::findOrFail($id);
+        $totalJugadores = JugadorPartida::where('id_partida', $partida->id)->count();
+
+        return response()->json([
+            'estado' => $partida->estado,
+            'totalJugadores' => $totalJugadores,
+            'puedeIniciar' => $totalJugadores >= 2
+        ]);
     }
 
     public function show($id)
@@ -85,119 +116,6 @@ class PartidaController extends Controller
             'misBarcos' => $misBarcos,
             'misMovimientos' => $misMovimientos,
             'esmiTurno' => $jugadorActual?->es_turno ?? false
-        ]);
-    }
-
-    public function unirse($id)
-    {
-        $partida = Partida::findOrFail($id);
-
-        if (!$partida->puedeUnirse()) {
-            return back()->withErrors(['error' => 'No se puede unir a esta partida']);
-        }
-
-        $jugadorPartida = JugadorPartida::create([
-            'id_usuario' => Auth::id(),
-            'id_partida' => $partida->id,
-            'es_turno' => false
-        ]);
-
-        $jugadorPartida->generarTablero();
-
-        $partida->iniciar();
-
-        return redirect()->route('partidas.show', $partida->id);
-    }
-
-    public function atacar(Request $request, $id)
-    {
-        $request->validate([
-            'coordenada' => 'required|string'
-        ]);
-
-        $partida = Partida::findOrFail($id);
-        $jugadorActual = $partida->obtenerJugador(Auth::id());
-        $rival = $partida->obtenerRival(Auth::id());
-
-        if (!$jugadorActual?->es_turno || $partida->estado !== 'en_progreso') {
-            return response()->json(['error' => 'No es tu turno'], 403);
-        }
-
-        $yaAtacado = Movimiento::where('id_partida', $partida->id)
-            ->where('id_atacante', $jugadorActual->id)
-            ->where('coordenada', $request->coordenada)
-            ->exists();
-
-        if ($yaAtacado) {
-            return response()->json(['error' => 'Ya atacaste esta coordenada'], 400);
-        }
-
-        $barco = Barco::where('id_jugador_partida', $rival->id)
-            ->where('coordenada', $request->coordenada)
-            ->first();
-
-        $acierto = $barco !== null;
-
-        Movimiento::create([
-            'id_partida' => $partida->id,
-            'id_atacante' => $jugadorActual->id,
-            'id_defensor' => $rival->id,
-            'coordenada' => $request->coordenada,
-            'acierto' => $acierto
-        ]);
-
-        if ($acierto) {
-            $barco->hundir();
-            
-            if ($rival->todosLosBarcosHundidos()) {
-                $partida->finalizarPartida(Auth::id());
-                return response()->json([
-                    'acierto' => true,
-                    'ganaste' => true,
-                    'coordenada' => $request->coordenada
-                ]);
-            }
-        }
-
-        $jugadorActual->cambiarTurno();
-
-        return response()->json([
-            'acierto' => $acierto,
-            'coordenada' => $request->coordenada,
-            'ganaste' => false
-        ]);
-    }
-
-    public function partidasDisponibles()
-    {
-        $partidas = Partida::where('estado', 'esperando')
-            ->whereDoesntHave('jugadores', function ($query) {
-                $query->where('id_usuario', Auth::id());
-            })
-            ->with(['jugadores.usuario'])
-            ->get();
-
-        return Inertia::render('Partidas/Disponibles', [
-            'partidas' => $partidas
-        ]);
-    }
-
-    public function estadoPartida($id)
-    {
-        $partida = Partida::with([
-            'jugadores.usuario',
-            'movimientos' => function ($query) {
-                $query->latest()->limit(1);
-            }
-        ])->findOrFail($id);
-
-        $jugadorActual = $partida->obtenerJugador(Auth::id());
-
-        return response()->json([
-            'estado' => $partida->estado,
-            'es_mi_turno' => $jugadorActual?->es_turno ?? false,
-            'ultimo_movimiento' => $partida->movimientos->first(),
-            'ganador_id' => $partida->ganador_id
         ]);
     }
 }

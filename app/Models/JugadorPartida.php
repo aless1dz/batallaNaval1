@@ -13,7 +13,7 @@ class JugadorPartida extends Model
     protected $table = 'jugadores_partida';
     
     protected $fillable = [
-        'id_user',
+        'id_usuario',
         'id_partida',
         'es_turno',
     ];
