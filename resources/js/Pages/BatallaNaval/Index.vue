@@ -14,7 +14,6 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
-                                <th class="px-4 py-2 text-left">ID</th>
                                 <th class="px-4 py-2 text-left">Estado</th>
                                 <th class="px-4 py-2 text-left">Jugadores</th>
                                 <th class="px-4 py-2"></th>

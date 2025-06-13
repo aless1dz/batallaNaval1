@@ -27,7 +27,7 @@
                         <PrimaryButton class="mr-4" @click="$inertia.visit('/games/create')">
                             Crear nueva partida
                         </PrimaryButton>
-                        <PrimaryButton @click="$inertia.visit('/games/join')" class="ml-4">
+                        <PrimaryButton @click="$inertia.visit('/batallanaval/juego')">
                             Unirse a una partida
                         </PrimaryButton>
                     </div>
