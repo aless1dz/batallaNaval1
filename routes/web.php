@@ -43,6 +43,8 @@ Route::post('Partidas/store', [PartidaController::class, 'store'])->name('partid
 Route::get('SalaEspera/{id}', [PartidaController::class, 'SalaEspera'])->name('partidas.espera');
 
 Route::get('partidas/{id}/verificar-estado', [PartidaController::class, 'verificarEstado'])->name('partida.verificar-estado');
+
+Route::get('partidas/index', [PartidaController::class, 'index'])->name('partidas.index');
     
 
 require __DIR__.'/auth.php';

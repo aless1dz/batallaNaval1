@@ -29,9 +29,12 @@
                         <PrimaryButton class="mr-4" @click="openModal">
                             Crear nueva partida
                         </PrimaryButton>
+
+                    <Link :href="route('partidas.index')" class="inline-block" >
                         <PrimaryButton >
                             Unirse a una partida
                         </PrimaryButton>
+                    </Link>
                     </div>
                 </div>
             </div>
@@ -82,7 +85,7 @@ import Modal from "@/Components/Modal.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import InputError from "@/Components/InputError.vue";
 import TextInput from "@/Components/TextInput.vue";
-import { Head } from "@inertiajs/vue3";
+import { Head,Link } from "@inertiajs/vue3";
 
 export default {
     components: {
@@ -93,6 +96,7 @@ export default {
         InputLabel,
         InputError,
         TextInput,
+        Link,
     },
 
     data() {

@@ -12,20 +12,6 @@ use Inertia\Inertia;
 
 class PartidaController extends Controller
 {
-    public function index()
-    {
-        $partidas = Partida::with(['usuarios', 'ganador'])
-            ->whereHas('jugadores', function ($query) {
-                $query->where('id_usuario', Auth::id());
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-
-        return Inertia::render('BatallaNaval/Index', [
-            'partidas' => $partidas
-        ]);
-    }
-
     public function create()
     {
         return Inertia::render('Partidas/Create');
@@ -84,38 +70,25 @@ class PartidaController extends Controller
         ]);
     }
 
-    public function show($id)
-    {
-        $partida = Partida::with([
-            'jugadores.usuario',
-            'jugadores.barcos',
-            'movimientos.atacante.usuario',
-            'movimientos.defensor.usuario'
-        ])->findOrFail($id);
 
-        $jugadorActual = $partida->obtenerJugador(Auth::id());
-        $rival = $partida->obtenerRival(Auth::id());
+    public function index()
+{
+    
+    $partidas = Partida::where('estado', 'esperando')
+    ->with([
+        'usuarios' => function ($query) {
+            $query->select('users.id', 'users.name', 'users.email');
+        }
+    ])
+    ->withCount('usuarios')
+    ->having('usuarios_count', '<', 2)
+    ->get();
 
-        $misBarcos = $jugadorActual ? $jugadorActual->barcos->pluck('coordenada')->toArray() : [];
-        
-        $misMovimientos = $partida->movimientos()
-            ->where('id_atacante', $jugadorActual?->id)
-            ->get()
-            ->map(function ($mov) {
-                return [
-                    'coordenada' => $mov->coordenada,
-                    'acierto' => $mov->acierto
-                ];
-            })
-            ->toArray();
-
-        return Inertia::render('Partidas/Show', [
-            'partida' => $partida,
-            'jugadorActual' => $jugadorActual,
-            'rival' => $rival,
-            'misBarcos' => $misBarcos,
-            'misMovimientos' => $misMovimientos,
-            'esmiTurno' => $jugadorActual?->es_turno ?? false
-        ]);
-    }
+    
+    
+    return Inertia::render('Partidas/Index', [
+        'partidas' => $partidas
+    ]);
+    
+}
 }

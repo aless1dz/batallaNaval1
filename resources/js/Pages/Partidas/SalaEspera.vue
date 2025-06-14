@@ -1,7 +1,7 @@
 <template>
     <AuthenticatedLayout>
         <div
-            class="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4"
+            class="min-h-screen bg-white flex items-center justify-center p-2"
         >
             <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
                 <div v-if="flash.success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
@@ -23,7 +23,7 @@
 
                 <div class="flex justify-center mb-6">
                     <div
-                        class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"
+                        class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"
                     ></div>
                 </div>
 
