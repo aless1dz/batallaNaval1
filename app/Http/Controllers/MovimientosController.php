@@ -28,7 +28,7 @@ class MovimientosController extends Controller
 
         if($barco){
             $acierto = true;
-            $barco->coordenada = null; // Marcar el barco como hundido
+            $barco->coordenada = null;
             $barco->save();
         }
 

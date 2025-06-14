@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EstadisticasController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -36,7 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Rutas para Partidas
+
 
 Route::post('Partidas/store', [PartidaController::class, 'store'])->name('partidas.store');
 
@@ -47,4 +48,11 @@ Route::get('partidas/{id}/verificar-estado', [PartidaController::class, 'verific
 Route::get('partidas/index', [PartidaController::class, 'index'])->name('partidas.index');
     
 
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/estadisticas', [EstadisticasController::class, 'index'])->name('estadisticas.index');
+    Route::get('/estadisticas/partidas/{tipo}', [EstadisticasController::class, 'partidas'])->name('estadisticas.partidas');
+    Route::get('/estadisticas/partida/{id}', [EstadisticasController::class, 'detalle'])->name('estadisticas.detalle');
+});
 require __DIR__.'/auth.php';

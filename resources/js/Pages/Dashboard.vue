@@ -35,6 +35,12 @@
                             Unirse a una partida
                         </PrimaryButton>
                     </Link>
+
+                    <Link :href="route('estadisticas.index')" class="inline-block ml-4">
+                        <PrimaryButton>
+                            Ver estadísticas
+                        </PrimaryButton>
+                    </Link>
                     </div>
                 </div>
             </div>
