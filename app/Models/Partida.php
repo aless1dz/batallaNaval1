@@ -1,6 +1,6 @@
 <?php
 // app/Models/Partida.php
-
+// app/Models/Partida.php
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -40,7 +40,7 @@ class Partida extends Model
             User::class,
             'jugadores_partida',
             'id_partida',
-            'id_usuario'
+            'id_usuario' // CORREGIDO: era 'id_usuario' no 'id_user'
         );
     }
 
@@ -49,45 +49,19 @@ class Partida extends Model
         return $this->hasMany(Movimiento::class, 'id_partida');
     }
 
-    public function puedeUnirse()
-    {
-        return $this->jugadores()->count() < 2 && $this->estado === 'esperando';
-    }
+   public function barcos()
+{
+    return $this->hasManyThrough(
+        Barco::class, 
+        JugadorPartida::class, 
+        'id_partida', 
+        'id_jugador_partida', 
+        'id', 
+        'id' 
+    );
+}
 
-    public function iniciar()
-    {
-        if ($this->jugadores()->count() === 2) {
-            $this->estado = 'en_progreso';
-            
-            $primerJugador = $this->jugadores()->first();
-            $primerJugador->es_turno = true;
-            $primerJugador->save();
-            
-            $this->save();
-            return true;
-        }
-        return false;
-    }
+    
 
-    public function finalizarPartida($ganadorId)
-    {
-        $this->estado = 'finalizada';
-        $this->ganador_id = $ganadorId;
-        $this->save();
-    }
-
-    public function obtenerRival($userId)
-    {
-        return $this->jugadores()
-            ->where('id_user', '!=', $userId)
-            ->with('user')
-            ->first();
-    }
-
-    public function obtenerJugador($userId)
-    {
-        return $this->jugadores()
-            ->where('id_user', $userId)
-            ->first();
-    }
+    
 }

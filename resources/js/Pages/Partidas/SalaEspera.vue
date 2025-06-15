@@ -1,8 +1,6 @@
 <template>
     <AuthenticatedLayout>
-        <div
-            class="min-h-screen bg-white flex items-center justify-center p-2"
-        >
+        <div class="min-h-screen bg-white flex items-center justify-center p-2">
             <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
                 <div v-if="flash.success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
                     {{ flash.success }}
@@ -22,9 +20,7 @@
                 </div>
 
                 <div class="flex justify-center mb-6">
-                    <div
-                        class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"
-                    ></div>
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
                 </div>
 
                 <div class="text-lg text-gray-600 mb-4">
@@ -44,9 +40,10 @@
 
                 <button
                     @click="cancelar"
-                    class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                    :disabled="isRedirecting"
+                    class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:opacity-50"
                 >
-                    Cancelar y volver
+                    {{ isRedirecting ? 'Cancelando...' : 'Cancelar y volver' }}
                 </button>
             </div>
         </div>
@@ -82,6 +79,8 @@ export default {
             jugadoresActuales: this.totalJugadores,
             polling: true,
             intervalId: null,
+            isRedirecting: false,
+            redirectTimeout: null,
         };
     },
     computed: {
@@ -94,7 +93,7 @@ export default {
     },
     methods: {
         async verificarEstado() {
-            if (!this.polling) return;
+            if (!this.polling || this.isRedirecting) return;
 
             try {
                 const response = await axios.get(
@@ -103,19 +102,47 @@ export default {
 
                 this.jugadoresActuales = response.data.totalJugadores;
 
-                if (response.data.puedeIniciar) {
+                if (response.data.puedeIniciar && response.data.estado === 'en_curso') {
                     this.polling = false;
-                    setTimeout(() => {
-                        router.visit(`/partida/${this.partida.id}/jugar`);
+                    this.isRedirecting = true;
+                    
+                   
+                    this.redirectTimeout = setTimeout(() => {
+                        router.visit(`/juego/${this.partida.id}`, {
+                            method: 'get',
+                            onFinish: () => {
+                                this.isRedirecting = false;
+                            }
+                        });
                     }, 2000);
                 }
             } catch (error) {
                 console.error("Error al verificar estado:", error);
             }
         },
+        
         cancelar() {
+            if (this.isRedirecting) return;
+            
             this.polling = false;
-            router.visit("/dashboard");
+            this.isRedirecting = true;
+            
+            
+            if (this.redirectTimeout) {
+                clearTimeout(this.redirectTimeout);
+            }
+            if (this.intervalId) {
+                clearInterval(this.intervalId);
+            }
+            
+            
+            router.post(`/partidas/${this.partida.id}/cancelar`, {
+                _method: 'DELETE'
+            }, {
+                onFinish: () => {
+                    this.isRedirecting = false;
+                }
+            });
         },
     },
     mounted() {
@@ -126,6 +153,9 @@ export default {
         this.polling = false;
         if (this.intervalId) {
             clearInterval(this.intervalId);
+        }
+        if (this.redirectTimeout) {
+            clearTimeout(this.redirectTimeout);
         }
     },
 };

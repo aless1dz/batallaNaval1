@@ -140,7 +140,7 @@ export default {
         },
         
         unirsePartida(partidaId) {
-            this.$inertia.post(route('partidas.join', partidaId), {}, {
+            this.$inertia.post(route('partidas.unirse', partidaId), {
                 onSuccess: () => {
                     this.refreshData(); 
                 },

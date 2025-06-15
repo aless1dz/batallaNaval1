@@ -20,7 +20,7 @@
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import EstadisticasGrafica from '@/Components/EstadisticasGrafica.vue';
+import EstadisticasGrafica from '@/Components/Estadisticasgrafica.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Link } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
