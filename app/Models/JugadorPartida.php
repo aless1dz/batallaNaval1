@@ -1,6 +1,5 @@
 <?php
 // app/Models/JugadorPartida.php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +10,7 @@ class JugadorPartida extends Model
     use HasFactory;
 
     protected $table = 'jugadores_partida';
-    
+
     protected $fillable = [
         'id_usuario',
         'id_partida',
@@ -25,7 +24,7 @@ class JugadorPartida extends Model
 
     public function usuario()
     {
-    return $this->belongsTo(User::class, 'id_usuario'); 
+        return $this->belongsTo(User::class, 'id_usuario');
     }
 
     public function partida()
@@ -54,16 +53,14 @@ class JugadorPartida extends Model
         $letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
         $numeros = [1, 2, 3, 4, 5, 6, 7, 8];
 
-       
         foreach ($letras as $letra) {
             foreach ($numeros as $numero) {
                 $coordenadas[] = $letra . $numero;
             }
         }
 
-        
         $barcosCoords = array_slice(array_shuffle($coordenadas), 0, 15);
-        
+
         foreach ($barcosCoords as $coord) {
             Barco::create([
                 'id_jugador_partida' => $this->id,
@@ -78,11 +75,10 @@ class JugadorPartida extends Model
         $this->es_turno = false;
         $this->save();
 
-       
         $rival = $this->partida->jugadores()
             ->where('id', '!=', $this->id)
             ->first();
-        
+
         if ($rival) {
             $rival->es_turno = true;
             $rival->save();
