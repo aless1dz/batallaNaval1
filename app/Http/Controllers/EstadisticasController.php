@@ -44,10 +44,27 @@ class EstadisticasController extends Controller
     }
 
     public function detalle($id)
-    {
-        $partida = Partida::findOrFail($id);
-        return Inertia::render('Estadisticas/Detalle', [
-            'partida' => $partida,
-        ]);
-    }
+{
+    $partida = Partida::with([
+        'jugadores.usuario',
+        'jugadores.barcos',
+        // Todos los movimientos donde el jugador fue atacante o defensor en esta partida
+        'jugadores.movimientosAtacante' => function($q) use ($id) {
+            $q->where('id_partida', $id);
+        },
+        'jugadores.movimientosDefensor' => function($q) use ($id) {
+            $q->where('id_partida', $id);
+        },
+    ])->findOrFail($id);
+
+    // También puedes traer todos los movimientos de la partida si quieres mostrarlos juntos
+    $movimientos = Movimiento::where('id_partida', $id)
+        ->with(['atacante.usuario', 'defensor.usuario'])
+        ->get();
+
+    return inertia('Estadisticas/Detalle', [
+        'partida' => $partida,
+        'movimientos' => $movimientos,
+    ]);
+}
 }

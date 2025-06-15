@@ -22,13 +22,14 @@ class Partida extends Model
         'creada_en' => 'datetime',
     ];
 
-    // Relaciones
+    
     public function ganador()
     {
         return $this->belongsTo(User::class, 'ganador_id');
     }
 
-    public function jugadores()
+   
+    public function jugadores() 
     {
         return $this->hasMany(JugadorPartida::class, 'id_partida');
     }

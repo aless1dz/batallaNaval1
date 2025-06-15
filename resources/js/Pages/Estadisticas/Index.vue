@@ -4,16 +4,16 @@
       <h1>Estadísticas de tus enfrentamientos</h1>
     </template>
     <div class="container">
-        <Link :href="route('dashboard')" class="inline-block mt-4">
-          <PrimaryButton>
-            Volver al Dashboard
-          </PrimaryButton>
-        </Link>
       <EstadisticasGrafica
         :ganadas="ganadas"
         :perdidas="perdidas"
         @barClick="irAPartidas"
       />
+      <Link :href="route('dashboard')" class="inline-block mt-4">
+        <PrimaryButton>
+          Volver al Dashboard
+        </PrimaryButton>
+      </Link>
     </div>
   </AuthenticatedLayout>
 </template>
