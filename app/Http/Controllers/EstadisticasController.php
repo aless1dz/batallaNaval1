@@ -5,6 +5,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Partida;
 use Inertia\Inertia;
+use App\Models\Movimiento;
+use App\Models\JugadorPartida;
+use App\Models\Barco;
 
 class EstadisticasController extends Controller
 {
@@ -48,7 +51,6 @@ class EstadisticasController extends Controller
     $partida = Partida::with([
         'jugadores.usuario',
         'jugadores.barcos',
-        // Todos los movimientos donde el jugador fue atacante o defensor en esta partida
         'jugadores.movimientosAtacante' => function($q) use ($id) {
             $q->where('id_partida', $id);
         },
@@ -57,12 +59,11 @@ class EstadisticasController extends Controller
         },
     ])->findOrFail($id);
 
-    // También puedes traer todos los movimientos de la partida si quieres mostrarlos juntos
     $movimientos = Movimiento::where('id_partida', $id)
         ->with(['atacante.usuario', 'defensor.usuario'])
         ->get();
 
-    return inertia('Estadisticas/Detalle', [
+    return inertia('Estadisticas/DetallePartidas', [
         'partida' => $partida,
         'movimientos' => $movimientos,
     ]);
