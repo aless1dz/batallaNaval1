@@ -120,7 +120,6 @@ class TableroController extends Controller
 
     private function formatearDisparos($movimientos)
 {
-    // Si es null, vacío o no es una colección, retornar array vacío
     if (empty($movimientos) || !method_exists($movimientos, 'map')) {
         return [];
     }
@@ -144,7 +143,7 @@ class TableroController extends Controller
             'hundido' => $hundido,
             'resultado' => $hundido ? 'hundido' : ($movimiento->acierto ? 'impacto' : 'agua')
         ];
-    })->values()->toArray(); // ← AQUÍ está el cambio importante: ->values()
+    })->values()->toArray();
 }
 
 

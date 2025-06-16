@@ -89,7 +89,6 @@ class PartidaController extends Controller
         if ($totalJugadores >= 2 && $partida->estado === 'esperando') {
             $partida->update(['estado' => 'en_curso']);
             
-            // Asignar turno al primer jugador
             $primerJugador = JugadorPartida::where('id_partida', $partida->id)
                 ->orderBy('created_at', 'asc')
                 ->first();
@@ -192,7 +191,7 @@ class PartidaController extends Controller
         }
 
         shuffle($coordenadas); 
-        $barcosCoords = array_slice($coordenadas, 0, 15); 
+        $barcosCoords = array_slice($coordenadas, 0, 5); 
 
         foreach ($barcosCoords as $coord) {
             Barco::create([
