@@ -119,6 +119,10 @@
                         Perfil
                     </Link>
 
+                    <Link :href="route('partidas.mis')" class="block px-4 py-2 hover:bg-gray-100">
+                    Mis Partidas
+                    </Link>
+
                     <!-- Settings Section -->
                     <div class="mt-8">
                         <h3

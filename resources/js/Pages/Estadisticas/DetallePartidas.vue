@@ -9,40 +9,27 @@
         :key="jugador.id"
         class="tablero-container"
       >
-        <Tablero
-          :esPropio="false"
-          :nombreJugador="jugador.usuario.name || jugador.usuario.nombre_usuario"
-          :posicionesBarcos="jugador.barcos.map(b => b.coordenada)"
-          :disparos="jugador.movimientos_defensor.map(m => ({
-            posicion: m.coordenada,
-            impacto: m.acierto ?? false, // true si fue acierto, false si no
-            hundido: false // pon true si tienes esa info en el movimiento/barco
-          }))"
-          :mostrarBarcos="true"
-          :mostrarInfo="true"
-        />
-        <h4 class="mt-4">Barcos:</h4>
-        <ul>
-          <li
-            v-for="barco in jugador.barcos"
-            :key="barco.id"
-            :style="{ color: barco.hundido ? 'red' : 'black' }"
-          >
-            {{ barco.coordenada }} <span v-if="barco.hundido">(Hundido)</span>
-          </li>
-        </ul>
-        <h4>Movimientos recibidos:</h4>
-        <ul>
-          <li v-for="mov in jugador.movimientos_defensor" :key="mov.id">
-            {{ mov.coordenada }} <span v-if="mov.acierto">(Acierto)</span>
-          </li>
-        </ul>
-        <h4>Movimientos realizados:</h4>
-        <ul>
-          <li v-for="mov in jugador.movimientos_atacante" :key="mov.id">
-            {{ mov.coordenada }} <span v-if="mov.acierto">(Acierto)</span>
-          </li>
-        </ul>
+        <h3>Tablero de {{ jugador.usuario.name || jugador.usuario.nombre_usuario }}</h3>
+        <div class="tablero">
+          <div v-for="fila in tableroPorJugador[jugador.id]?.grilla" :key="fila[0]?.fila" class="fila">
+            <div
+              v-for="celda in fila"
+              :key="celda.columna"
+              class="celda"
+              :class="{
+                barco: celda.tieneBarco,
+                disparo: celda.disparado,
+                impacto: celda.impacto,
+                hundido: celda.hundido
+              }"
+            >
+              
+              <span v-if="celda.impacto">💥</span>
+              <span v-else-if="celda.tieneBarco">🚢</span>
+              <span v-else-if="celda.disparado">•</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <PrimaryButton class="mt-4" @click="volver">
@@ -53,22 +40,78 @@
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import Tablero from '@/Pages/Juegos/Partida.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import Tablero from '@/models/tablero.js';
 import { router } from '@inertiajs/vue3';
 
 export default {
   components: {
     AuthenticatedLayout,
-    Tablero,
     PrimaryButton,
   },
   props: {
     partida: Object,
+    tipo: String,
+    from: String,
+  },
+  data() {
+    return {
+      tableroPorJugador: {},
+    };
+  },
+  mounted() {
+    this.generarTableros();
   },
   methods: {
-    volver() {
-      router.get('/estadisticas/partidas/ganadas'); // o 'perdidas', según tu flujo
+  volver() {
+    if (this.from === 'mis-partidas') {
+      router.get('/mis-partidas');
+    } else if (this.from === 'ganadas' || this.from === 'perdidas') {
+      router.get(`/estadisticas/partidas/${this.from}`);
+    } else {
+      router.get('/mis-partidas'); // fallback
+    }
+  },
+    generarTableros() {
+      
+      this.tableroPorJugador = {};
+      this.partida.jugadores.forEach(jugador => {
+        const tablero = new Tablero(10);
+
+        
+        jugador.barcos.forEach(barco => {
+          
+          const fila = "ABCDEFGHIJ".indexOf(barco.coordenada[0]);
+          const columna = parseInt(barco.coordenada.slice(1), 10) - 1;
+          if (fila >= 0 && columna >= 0) {
+            tablero.grilla[fila][columna].tieneBarco = true;
+            tablero.grilla[fila][columna].hundido = barco.hundido;
+          }
+        });
+
+       
+        if (jugador.movimientos_defensor) {
+          jugador.movimientos_defensor.forEach(mov => {
+            const fila = "ABCDEFGHIJ".indexOf(mov.coordenada[0]);
+            const columna = parseInt(mov.coordenada.slice(1), 10) - 1;
+            if (fila >= 0 && columna >= 0) {
+              tablero.grilla[fila][columna].disparado = true;
+              tablero.grilla[fila][columna].impacto = mov.acierto;
+            }
+          });
+        }
+
+        this.tableroPorJugador[jugador.id] = tablero;
+      });
+    },
+  },
+  watch: {
+    partida: {
+      handler() {
+        this.generarTableros();
+      },
+      deep: true,
+      immediate: true,
     },
   },
 };
@@ -84,5 +127,35 @@ export default {
   padding: 1rem;
   border-radius: 8px;
   min-width: 320px;
+}
+.tablero {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+.fila {
+  display: flex;
+}
+.celda {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #bbb;
+  margin: 1px;
+  background: #f9f9f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.celda.barco {
+  background: #4caf50;
+}
+.celda.hundido {
+  background: #f44336;
+}
+.celda.disparo {
+  border: 2px solid #2196f3;
+}
+.celda.impacto {
+  background: gold;
 }
 </style>

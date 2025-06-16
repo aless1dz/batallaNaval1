@@ -7,18 +7,18 @@
       <table class="min-w-full border">
         <thead>
           <tr>
-            <th class="border px-4 py-2">ID</th>
+            <th class="border px-4 py-2">Nombre</th>
             <th class="border px-4 py-2">Fecha</th>
             <th class="border px-4 py-2">Acción</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="partida in partidas" :key="partida.id">
-            <td class="border px-4 py-2">{{ partida.id }}</td>
-            <td class="border px-4 py-2">{{ partida.created_at }}</td>
+           <td class="border px-4 py-2">{{ partida.nombre }}</td>
+            <td class="border px-4 py-2">{{ new Date(partida.creada_en).toLocaleDateString() }}</td>
             <td class="border px-4 py-2">
               <PrimaryButton @click="verDetalle(partida.id)">
-                Ver Partida
+                Ver Detalles
               </PrimaryButton>
             </td>
           </tr>
@@ -51,7 +51,7 @@ export default {
   },
   methods: {
     verDetalle(id) {
-      router.get(`/estadisticas/partida/${id}`);
+      router.get(`/estadisticas/partida/${id}`, { tipo: this.tipo });
     },
   },
 };

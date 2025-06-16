@@ -10,9 +10,9 @@ export default class Tablero {
     crearGrilla() {
         const grilla = [];
         for (let i = 0; i < this.tamaño; i++)  {
-            grilla = [];
+            const fila = [];
             for (let j = 0; j < this.tamaño; j++) {
-                grilla[i][j] = {
+                fila.push({
                     fila: i,
                     columna: j,
                     tieneBarco: false,
@@ -20,8 +20,9 @@ export default class Tablero {
                     impacto: false,
                     barcoId: null,
                     hundido: false,
-                }
+                })
             }
+            grilla.push(fila);
         }
         return grilla;
     }
