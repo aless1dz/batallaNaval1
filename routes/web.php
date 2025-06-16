@@ -54,8 +54,13 @@ Route::get('/mis-partidas', [PartidaController::class, 'misPartidas'])->name('pa
 
 Route::post('partidas-unirse/{id}', [PartidaController::class, 'unirse'])->name('partidas.unirse');
 
-Route::get('juego/{id}', [TableroController::class, 'tablero'])->name('juego.tablero');
 
+
+
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('/juego/{id}', [TableroController::class, 'tablero'])->name('juego.tablero');
+    Route::post('/partidas/{id}/disparar', [TableroController::class, 'disparar'])->name('partidas.disparar');
+});
 
 
 Route::middleware(['auth'])->group(function () {
