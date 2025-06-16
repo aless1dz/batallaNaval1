@@ -80,7 +80,7 @@ class PartidaController extends Controller
         if ($totalJugadores >= 2 && $partida->estado === 'esperando') {
             $partida->update(['estado' => 'en_curso']);
             
-            // Asignar turno al primer jugador
+            
             $primerJugador = JugadorPartida::where('id_partida', $partida->id)
                 ->orderBy('created_at', 'asc')
                 ->first();
@@ -178,5 +178,34 @@ class PartidaController extends Controller
         }
 
         return redirect()->route('dashboard')->with('success', 'Has salido de la partida.');
+    }
+
+    public function misPartidas()
+    {
+        $usuarioId = Auth::id();
+
+        $misPartidas = Partida::whereHas('jugadores', function($q) use ($usuarioId) {
+                $q->where('id_usuario', $usuarioId);
+            })
+            ->with(['jugadores.usuario'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function($partida) use ($usuarioId) {
+                $resultado = null;
+                if ($partida->estado === 'finalizada') {
+                    $resultado = $partida->ganador_id == $usuarioId ? 'Ganada' : 'Perdida';
+                }
+                return [
+                    'id' => $partida->id,
+                    'nombre' => $partida->nombre,
+                    'estado' => $partida->estado,
+                    'resultado' => $resultado,
+                    'created_at' => $partida->created_at,
+                ];
+            });
+
+        return Inertia::render('Partidas/MisPartidas', [
+            'partidas' => $misPartidas,
+        ]);
     }
 }

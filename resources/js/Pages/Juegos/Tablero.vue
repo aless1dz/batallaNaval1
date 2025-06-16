@@ -125,7 +125,7 @@ export default {
   name: 'Tablero',
   
   props: {
-    // Configuración básica
+    
     esPropio: {
       type: Boolean,
       default: false

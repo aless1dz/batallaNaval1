@@ -50,6 +50,7 @@ Route::get('partidas/index', [PartidaController::class, 'index'])->name('partida
 
 Route::delete('/partidas/{partida}/cancelar', [PartidaController::class, 'cancelar']) ->name('partidas.cancelar');
     
+Route::get('/mis-partidas', [PartidaController::class, 'misPartidas'])->name('partidas.mis');
 
 Route::post('partidas-unirse/{id}', [PartidaController::class, 'unirse'])->name('partidas.unirse');
 
