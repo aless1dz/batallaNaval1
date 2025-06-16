@@ -53,7 +53,7 @@
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import Tablero from '@/Pages/Juegos/Tablero.vue';
+import Tablero from '@/Pages/Juegos/Partida.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { router } from '@inertiajs/vue3';
 

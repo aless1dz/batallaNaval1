@@ -1,8 +1,6 @@
-<!-- resources/js/Pages/Juegos/Tablero.vue -->
 <template>
     <div class="min-h-screen bg-gray-100 py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Header del juego -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <div class="flex justify-between items-center">
                     <div>
@@ -30,7 +28,6 @@
                     </div>
                 </div>
 
-                <!-- Indicador de carga -->
                 <div v-if="cargando" class="mt-4">
                     <div
                         class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded"
@@ -62,9 +59,7 @@
                 </div>
             </div>
 
-            <!-- Tableros -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Mi Tablero -->
                 <div>
                     <Tablero
                         :es-propio="true"
@@ -81,7 +76,6 @@
                     />
                 </div>
 
-                <!-- Tablero del Oponente -->
                 <div>
                     <Tablero
                         :es-propio="false"
@@ -104,7 +98,6 @@
                 </div>
             </div>
 
-            <!-- Historial de movimientos -->
             <div class="mt-8 bg-white rounded-lg shadow-md p-6">
                 <h3 class="text-lg font-semibold mb-4">
                     Historial de Movimientos
@@ -149,7 +142,6 @@
                 </div>
             </div>
 
-            <!-- Controles adicionales -->
             <div class="mt-8 flex justify-center gap-4">
                 <button
                     @click="actualizarJuego"
@@ -167,7 +159,6 @@
                 </button>
             </div>
 
-            <!-- Mensajes de estado -->
             <div v-if="mensaje" class="fixed top-4 right-4 z-50">
                 <div
                     class="bg-white border-l-4 p-4 rounded shadow-lg max-w-sm"
@@ -217,37 +208,61 @@ export default {
         const cargando = ref(false);
         let intervalId = null;
 
-        // Computed para obtener movimientos recientes
         const ultimosMovimientos = computed(() => {
             const movimientos = [];
 
-            // Combinar movimientos de ambos tableros
+            // Debug - verificar estructura de datos
+            console.log("miTablero:", props.miTablero);
+            console.log("tableroOponente:", props.tableroOponente);
+
+            // Validar miTablero.disparos
             if (props.miTablero?.disparos) {
-                props.miTablero.disparos.forEach((disparo) => {
-                    movimientos.push({
-                        posicion: disparo.posicion,
-                        resultado: disparo.resultado,
-                        esPropio: false, // Disparo que me hicieron
+                if (Array.isArray(props.miTablero.disparos)) {
+                    props.miTablero.disparos.forEach((disparo) => {
+                        movimientos.push({
+                            posicion: disparo.posicion,
+                            resultado: disparo.resultado,
+                            esPropio: false,
+                        });
                     });
-                });
+                } else {
+                    console.warn(
+                        "props.miTablero.disparos no es un array:",
+                        typeof props.miTablero.disparos,
+                        props.miTablero.disparos
+                    );
+                }
             }
 
+            // Validar tableroOponente.disparos
             if (props.tableroOponente?.disparos) {
-                props.tableroOponente.disparos.forEach((disparo) => {
-                    movimientos.push({
-                        posicion: disparo.posicion,
-                        resultado: disparo.resultado,
-                        esPropio: true, // Disparo que hice
+                if (Array.isArray(props.tableroOponente.disparos)) {
+                    props.tableroOponente.disparos.forEach((disparo) => {
+                        movimientos.push({
+                            posicion: disparo.posicion,
+                            resultado: disparo.resultado,
+                            esPropio: true,
+                        });
                     });
-                });
+                } else {
+                    console.warn(
+                        "props.tableroOponente.disparos no es un array:",
+                        typeof props.tableroOponente.disparos,
+                        props.tableroOponente.disparos
+                    );
+                }
             }
 
-            // Ordenar por más reciente y limitar a 10
             return movimientos.slice(-10).reverse();
         });
 
         const realizarDisparo = async (evento) => {
             if (cargando.value || !props.esMiTurno || props.juegoTerminado) {
+                console.warn("Intento de disparo bloqueado:", {
+                    cargando: cargando.value,
+                    esMiTurno: props.esMiTurno,
+                    juegoTerminado: props.juegoTerminado,
+                });
                 mostrarMensaje(
                     "No puedes disparar en este momento",
                     "advertencia"
@@ -257,6 +272,8 @@ export default {
 
             cargando.value = true;
 
+            console.log("Realizando disparo en:", evento.posicion);
+
             try {
                 const response = await axios.post(
                     `/partidas/${props.partida.id}/disparar`,
@@ -264,6 +281,8 @@ export default {
                         posicion: evento.posicion,
                     }
                 );
+
+                console.log("Respuesta del servidor:", response.data);
 
                 const data = response.data;
 
@@ -281,6 +300,9 @@ export default {
                     case "hundido":
                         textoMensaje = `¡Barco hundido en ${evento.posicion}!`;
                         break;
+                    default:
+                        textoMensaje = `Resultado desconocido: ${data.resultado}`;
+                        tipoMensaje = "advertencia";
                 }
 
                 if (data.juegoTerminado) {
@@ -289,8 +311,14 @@ export default {
 
                 mostrarMensaje(textoMensaje, tipoMensaje);
 
-                // Aquí recargas las props para actualizar la vista
-                Inertia.reload({ only: ["partida"] });
+                console.log("Recargando solo `partida` vía Inertia...");
+                await Inertia.reload({
+                    only: ["partida"],
+                    onStart: () => console.log("Inertia.reload - inicio"),
+                    onFinish: () => console.log("Inertia.reload - finalizado"),
+                    onError: (err) =>
+                        console.error("Error durante reload:", err),
+                });
             } catch (error) {
                 console.error("Error al disparar:", error);
                 const errorMsg =
@@ -303,7 +331,6 @@ export default {
         };
 
         const manejarHover = (evento) => {
-            // Lógica para efectos visuales del hover si es necesario
             console.log("Hover en:", evento.posicion);
         };
 
@@ -351,14 +378,11 @@ export default {
             router.visit("/partidas/index");
         };
 
-        // Polling para actualizar el estado del juego
         const iniciarPolling = () => {
             intervalId = setInterval(() => {
-                if (
-                    !props.esMiTurno &&
-                    !props.juegoTerminado &&
-                    !cargando.value
-                ) {
+                if (!cargando.value) {
+                    console.log("Polling activo. Solicitando datos...");
+
                     router.reload({
                         only: [
                             "miTablero",
@@ -368,9 +392,19 @@ export default {
                             "ganador",
                         ],
                         preserveScroll: true,
+                        onFinish: () => {
+                            console.log("Polling reload terminado.");
+
+                            if (props.juegoTerminado) {
+                                clearInterval(intervalId);
+                                console.log(
+                                    "Juego terminado. Polling detenido."
+                                );
+                            }
+                        },
                     });
                 }
-            }, 5000); // Cada 5 segundos
+            }, 5000);
         };
 
         const detenerPolling = () => {
@@ -389,7 +423,6 @@ export default {
 
             iniciarPolling();
 
-            // Mostrar mensaje de bienvenida
             if (props.esMiTurno && !props.juegoTerminado) {
                 mostrarMensaje(
                     "¡Es tu turno! Haz click en el tablero enemigo para disparar",
@@ -425,7 +458,3 @@ export default {
     },
 };
 </script>
-
-<style scoped>
-/* Estilos adicionales si son necesarios */
-</style>
