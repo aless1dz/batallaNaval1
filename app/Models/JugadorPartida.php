@@ -47,28 +47,7 @@ class JugadorPartida extends Model
         return $this->hasMany(Movimiento::class, 'id_defensor');
     }
 
-    public function generarTablero()
-    {
-        $coordenadas = [];
-        $letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-        $numeros = [1, 2, 3, 4, 5, 6, 7, 8];
 
-        foreach ($letras as $letra) {
-            foreach ($numeros as $numero) {
-                $coordenadas[] = $letra . $numero;
-            }
-        }
-
-        $barcosCoords = array_slice(array_shuffle($coordenadas), 0, 15);
-
-        foreach ($barcosCoords as $coord) {
-            Barco::create([
-                'id_jugador_partida' => $this->id,
-                'coordenada' => $coord,
-                'hundido' => false
-            ]);
-        }
-    }
 
     public function cambiarTurno()
     {

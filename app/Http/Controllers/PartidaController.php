@@ -7,7 +7,9 @@ use App\Models\JugadorPartida;
 use App\Models\Barco;
 use App\Models\Movimiento;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+
 use Inertia\Inertia;
 
 class PartidaController extends Controller
@@ -17,7 +19,7 @@ class PartidaController extends Controller
         return Inertia::render('Partidas/Create');
     }
 
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $request->validate([
             'nombre' => 'sometimes|string|max:255',
@@ -36,8 +38,13 @@ class PartidaController extends Controller
             'es_turno' => false
         ]);
 
+        
+        $this->generarBarcosParaJugador($jugadorPartida->id);
+
         return redirect()->route('partidas.espera', $partida->id)->with('success', 'Partida creada exitosamente.');
     }
+
+
 
     public function SalaEspera($id) 
     {
@@ -72,6 +79,8 @@ class PartidaController extends Controller
         ]);
     }
 
+
+
     public function verificarEstado($id) {
         $partida = Partida::findOrFail($id);
         $totalJugadores = JugadorPartida::where('id_partida', $partida->id)->count();
@@ -79,7 +88,6 @@ class PartidaController extends Controller
         
         if ($totalJugadores >= 2 && $partida->estado === 'esperando') {
             $partida->update(['estado' => 'en_curso']);
-            
             
             $primerJugador = JugadorPartida::where('id_partida', $partida->id)
                 ->orderBy('created_at', 'asc')
@@ -127,19 +135,31 @@ class PartidaController extends Controller
             return redirect()->route('partidas.index')->with('error', 'No se puede unirse a la partida, ya está llena.');
         }
 
-        $yaEnPartida = JugadorPartida::where('id_partida', $partida->id)
+        $jugadorExistente = JugadorPartida::where('id_partida', $partida->id)
             ->where('id_usuario', Auth::id())
-            ->exists();
-        if ($yaEnPartida) {
-            return redirect()->route('partidas.espera', $partida->id)->with('info', 'Ya estás en esta partida.');
+            ->first();
+
+        
+        if ($jugadorExistente) {
+            $tieneBarcosAsignados = Barco::where('id_jugador_partida', $jugadorExistente->id)->exists();
+            
+            if (!$tieneBarcosAsignados) {
+                $this->generarBarcosParaJugador($jugadorExistente->id);
+            }
+
+            return redirect()->route('juego.tablero', $partida->id)
+                ->with('info', 'Ya estás en esta partida.');
         }
 
         
-        JugadorPartida::create([
+        $jugadorPartida = JugadorPartida::create([
             'id_usuario' => Auth::id(),
             'id_partida' => $partida->id,
             'es_turno' => false
         ]);
+
+        
+        $this->generarBarcosParaJugador($jugadorPartida->id);
 
         $jugadoresActuales = JugadorPartida::where('id_partida', $partida->id)->count();
         
@@ -155,7 +175,31 @@ class PartidaController extends Controller
             }
         }
 
-        return redirect()->route('partidas.espera', $partida->id)->with('success', 'Te has unido a la partida. ¡Empieza la partida!');
+        return redirect()->route('juego.tablero', $partida->id)->with('success', 'Te has unido a la partida. ¡Empieza la partida!');
+    }
+
+    
+    private function generarBarcosParaJugador($jugadorPartidaId) {
+        $coordenadas = [];
+        $letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']; 
+        $numeros = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; 
+
+        foreach ($letras as $letra) {
+            foreach ($numeros as $numero) {
+                $coordenadas[] = $letra . $numero;
+            }
+        }
+
+        shuffle($coordenadas); 
+        $barcosCoords = array_slice($coordenadas, 0, 5); 
+
+        foreach ($barcosCoords as $coord) {
+            Barco::create([
+                'id_jugador_partida' => $jugadorPartidaId,
+                'coordenada' => $coord,
+                'hundido' => false
+            ]);
+        }
     }
 
     

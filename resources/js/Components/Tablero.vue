@@ -1,7 +1,5 @@
-<!-- resources/js/Components/Tablero.vue -->
 <template>
   <div class="bg-white rounded-lg shadow-md p-6">
-    <!-- Header del tablero -->
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">
         {{ esPropio ? 'Tu Tablero' : `Tablero de ${nombreJugador}` }}
@@ -13,9 +11,8 @@
       </div>
     </div>
 
-    <!-- Coordenadas superiores (A-J) -->
     <div class="grid grid-cols-11 gap-1 mb-2">
-      <div></div> <!-- Espacio vacío para la esquina -->
+      <div></div> 
       <div 
         v-for="letra in letras" 
         :key="letra"
@@ -25,16 +22,12 @@
       </div>
     </div>
 
-    <!-- Tablero principal -->
     <div class="grid grid-cols-11 gap-1">
-      <!-- Fila por fila -->
       <template v-for="(numero, filaIndex) in numeros" :key="'fila-' + numero">
-        <!-- Número de fila -->
         <div class="h-8 flex items-center justify-center text-sm font-medium text-gray-600">
           {{ numero }}
         </div>
-        
-        <!-- Celdas de la fila -->
+
         <div 
           v-for="(letra, colIndex) in letras"
           :key="letra + numero"
@@ -48,7 +41,6 @@
       </template>
     </div>
 
-    <!-- Leyenda -->
     <div class="mt-4 flex flex-wrap gap-4 text-xs">
       <div class="flex items-center gap-1">
         <div class="w-4 h-4 bg-gray-300 border-2 border-gray-400"></div>
@@ -72,7 +64,6 @@
       </div>
     </div>
 
-    <!-- Mensaje de estado -->
     <div v-if="juegoTerminado" class="mt-4 p-4 rounded-lg text-center font-bold text-lg">
       <div v-if="ganador === 'jugador'" class="bg-green-100 text-green-800">
         ¡Has ganado!
@@ -145,8 +136,7 @@ export default {
   setup(props, { emit }) {
     const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
     const numeros = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    
-    // Crear mapa de disparos para búsqueda rápida
+
     const mapaDisparos = computed(() => {
       const mapa = {}
       props.disparos.forEach(disparo => {
@@ -154,61 +144,52 @@ export default {
       })
       return mapa
     })
-    
-    // Verificar si una posición tiene barco
+
     const tieneBarco = (posicion) => {
       return props.posicionesBarcos.includes(posicion)
     }
-    
-    // Verificar si una posición fue disparada
+
     const fueDisparado = (posicion) => {
       return posicion in mapaDisparos.value
     }
-    
-    // Obtener información del disparo
+
     const obtenerDisparo = (posicion) => {
       return mapaDisparos.value[posicion] || null
     }
-    
-    // Obtener clases CSS para una celda
+
     const obtenerClaseCelda = (posicion) => {
       const disparo = obtenerDisparo(posicion)
       const hayBarco = tieneBarco(posicion)
       const disparado = fueDisparado(posicion)
       
       let clases = []
-      
-      // Estado base
+
       if (!disparado && !hayBarco) {
         clases.push('bg-gray-100 hover:bg-gray-200')
       }
-      
-      // Barco visible (solo en mi tablero o si fue hundido)
+
       if (hayBarco && (props.mostrarBarcos || (disparo && disparo.hundido))) {
         if (!disparado) {
           clases.push('bg-blue-500 border-blue-600')
         }
       }
-      
-      // Efectos de disparo
+
       if (disparado && disparo) {
         if (disparo.impacto) {
           if (disparo.hundido) {
-            clases.push('bg-red-800 border-red-900 text-white') // Hundido
+            clases.push('bg-red-800 border-red-900 text-white') 
           } else {
-            clases.push('bg-red-500 border-red-600 text-white') // Impacto
+            clases.push('bg-red-500 border-red-600 text-white') 
           }
         } else {
-          clases.push('bg-blue-400 border-blue-500') // Agua
+          clases.push('bg-blue-400 border-blue-500') 
         }
       }
-      
-      // Efectos de interacción
+
       if (props.puedeDisparar && !disparado && !props.juegoTerminado) {
         clases.push('hover:bg-yellow-200 hover:border-yellow-400')
       }
-      
-      // Cursor
+
       if (props.puedeDisparar && !disparado && !props.juegoTerminado) {
         clases.push('cursor-pointer')
       } else {
@@ -217,30 +198,27 @@ export default {
       
       return clases.join(' ')
     }
-    
-    // Obtener contenido visual de una celda
+
     const obtenerContenidoCelda = (posicion) => {
       const disparo = obtenerDisparo(posicion)
       
       if (disparo) {
         if (disparo.hundido) {
-          return '💥' // Hundido
+          return '💥' 
         } else if (disparo.impacto) {
-          return '🔥' // Impacto
+          return '🔥' 
         } else {
-          return '💧' // Agua
+          return '💧'
         }
       }
-      
-      // Mostrar barco si corresponde
+
       if (tieneBarco(posicion) && props.mostrarBarcos) {
-        return '🚢' // Barco
+        return '🚢' 
       }
       
-      return '' // Celda vacía
+      return '' 
     }
-    
-    // Manejar click en celda
+
     const manejarClick = (posicion) => {
       if (!props.puedeDisparar || props.juegoTerminado) return
       if (fueDisparado(posicion)) return
@@ -263,7 +241,6 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos adicionales si necesitas */
 .tablero-celda {
   aspect-ratio: 1;
 }
