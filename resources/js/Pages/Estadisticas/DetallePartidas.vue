@@ -146,32 +146,3 @@ export default {
   background: gold;
 }
 </style>
-        <script>
-        import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-        import PrimaryButton from '@/Components/PrimaryButton.vue';
-        import TableroVisual from '@/Pages/Juegos/Tablero.vue'; // Usa el componente visual
-        import { router } from '@inertiajs/vue3';
-        
-        export default {
-          components: {
-            AuthenticatedLayout,
-            PrimaryButton,
-            TableroVisual,
-          },
-          props: {
-            partida: Object,
-            from: String,
-          },
-          methods: {
-            volver() {
-              if (this.from === 'mis-partidas') {
-                router.get('/mis-partidas');
-              } else if (this.from === 'ganadas' || this.from === 'perdidas') {
-                router.get(`/estadisticas/partidas/${this.from}`);
-              } else {
-                router.get('/mis-partidas');
-              }
-            },
-          },
-        };
-        </script>
