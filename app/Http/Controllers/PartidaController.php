@@ -181,8 +181,8 @@ class PartidaController extends Controller
     
     private function generarBarcosParaJugador($jugadorPartidaId) {
         $coordenadas = [];
-        $letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']; 
-        $numeros = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; 
+        $letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']; 
+        $numeros = [1, 2, 3, 4, 5, 6, 7, 8]; 
 
         foreach ($letras as $letra) {
             foreach ($numeros as $numero) {
@@ -191,7 +191,7 @@ class PartidaController extends Controller
         }
 
         shuffle($coordenadas); 
-        $barcosCoords = array_slice($coordenadas, 0, 5); 
+        $barcosCoords = array_slice($coordenadas, 0, 15); 
 
         foreach ($barcosCoords as $coord) {
             Barco::create([

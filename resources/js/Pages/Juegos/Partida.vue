@@ -1,6 +1,6 @@
 <template>
     <div class="min-h-screen bg-gray-100 py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <div class="flex justify-between items-center">
                     <div>
@@ -59,42 +59,56 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                    <Tablero
-                        :es-propio="true"
-                        :nombre-jugador="$page.props.auth.user.name"
-                        :posiciones-barcos="miTablero.barcos"
-                        :disparos="miTablero.disparos"
-                        :puede-disparar="false"
-                        :mostrar-barcos="true"
-                        :mostrar-info="true"
-                        :estadisticas="miTablero.estadisticas"
-                        :juego-terminado="juegoTerminado"
-                        :ganador="ganador"
-                        @disparar="realizarDisparo"
-                    />
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="flex justify-center">
+                    <div class="tablero-container w-full">
+                        <h2
+                            class="text-lg font-semibold mb-3 text-center text-gray-700"
+                        >
+                            Tu Tablero
+                        </h2>
+                        <Tablero
+                            :es-propio="true"
+                            :nombre-jugador="$page.props.auth.user.name"
+                            :posiciones-barcos="miTablero.barcos"
+                            :disparos="miTablero.disparos"
+                            :puede-disparar="false"
+                            :mostrar-barcos="true"
+                            :mostrar-info="true"
+                            :estadisticas="miTablero.estadisticas"
+                            :juego-terminado="juegoTerminado"
+                            :ganador="ganador"
+                            @disparar="realizarDisparo"
+                        />
+                    </div>
                 </div>
 
-                <div>
-                    <Tablero
-                        :es-propio="false"
-                        :nombre-jugador="oponente.usuario.name"
-                        :posiciones-barcos="tableroOponente.barcos"
-                        :disparos="tableroOponente.disparos"
-                        :puede-disparar="
-                            tableroOponente.puedeDisparar &&
-                            !juegoTerminado &&
-                            !cargando
-                        "
-                        :mostrar-barcos="false"
-                        :mostrar-info="true"
-                        :estadisticas="tableroOponente.estadisticas"
-                        :juego-terminado="juegoTerminado"
-                        :ganador="ganador"
-                        @disparar="realizarDisparo"
-                        @celda-hover="manejarHover"
-                    />
+                <div class="flex justify-center">
+                    <div class="tablero-container w-full">
+                        <h2
+                            class="text-lg font-semibold mb-3 text-center text-gray-700"
+                        >
+                            Tablero Enemigo
+                        </h2>
+                        <Tablero
+                            :es-propio="false"
+                            :nombre-jugador="oponente.usuario.name"
+                            :posiciones-barcos="tableroOponente.barcos"
+                            :disparos="tableroOponente.disparos"
+                            :puede-disparar="
+                                tableroOponente.puedeDisparar &&
+                                !juegoTerminado &&
+                                !cargando
+                            "
+                            :mostrar-barcos="false"
+                            :mostrar-info="true"
+                            :estadisticas="tableroOponente.estadisticas"
+                            :juego-terminado="juegoTerminado"
+                            :ganador="ganador"
+                            @disparar="realizarDisparo"
+                            @celda-hover="manejarHover"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -157,6 +171,15 @@
                 >
                     Volver a Partidas
                 </button>
+
+                <div v-if="juegoTerminado" class="fixed top-4 left-4 z-50">
+                    <button
+                        @click="salirDelJuego"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-lg transition-colors duration-200"
+                    >
+                        Volver a Partidas
+                    </button>
+                </div>
             </div>
 
             <div v-if="mensaje" class="fixed top-4 right-4 z-50">
@@ -179,7 +202,6 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from "vue";
 import { router } from "@inertiajs/vue3";
 import { Inertia } from "@inertiajs/inertia";
 import Tablero from "../../Components/Tablero.vue";
@@ -203,22 +225,21 @@ export default {
         ganador: String,
     },
 
-    setup(props) {
-        const mensaje = ref(null);
-        const cargando = ref(false);
-        let intervalId = null;
+    data() {
+        return {
+            mensaje: null,
+            cargando: false,
+            intervalId: null,
+        };
+    },
 
-        const ultimosMovimientos = computed(() => {
+    computed: {
+        ultimosMovimientos() {
             const movimientos = [];
 
-            // Debug - verificar estructura de datos
-            console.log("miTablero:", props.miTablero);
-            console.log("tableroOponente:", props.tableroOponente);
-
-            // Validar miTablero.disparos
-            if (props.miTablero?.disparos) {
-                if (Array.isArray(props.miTablero.disparos)) {
-                    props.miTablero.disparos.forEach((disparo) => {
+            if (this.miTablero?.disparos) {
+                if (Array.isArray(this.miTablero.disparos)) {
+                    this.miTablero.disparos.forEach((disparo) => {
                         movimientos.push({
                             posicion: disparo.posicion,
                             resultado: disparo.resultado,
@@ -227,17 +248,16 @@ export default {
                     });
                 } else {
                     console.warn(
-                        "props.miTablero.disparos no es un array:",
-                        typeof props.miTablero.disparos,
-                        props.miTablero.disparos
+                        "this.miTablero.disparos no es un array:",
+                        typeof this.miTablero.disparos,
+                        this.miTablero.disparos
                     );
                 }
             }
 
-            // Validar tableroOponente.disparos
-            if (props.tableroOponente?.disparos) {
-                if (Array.isArray(props.tableroOponente.disparos)) {
-                    props.tableroOponente.disparos.forEach((disparo) => {
+            if (this.tableroOponente?.disparos) {
+                if (Array.isArray(this.tableroOponente.disparos)) {
+                    this.tableroOponente.disparos.forEach((disparo) => {
                         movimientos.push({
                             posicion: disparo.posicion,
                             resultado: disparo.resultado,
@@ -246,48 +266,45 @@ export default {
                     });
                 } else {
                     console.warn(
-                        "props.tableroOponente.disparos no es un array:",
-                        typeof props.tableroOponente.disparos,
-                        props.tableroOponente.disparos
+                        "this.tableroOponente.disparos no es un array:",
+                        typeof this.tableroOponente.disparos,
+                        this.tableroOponente.disparos
                     );
                 }
             }
 
             return movimientos.slice(-10).reverse();
-        });
+        },
+    },
 
-        const realizarDisparo = async (evento) => {
-            if (cargando.value || !props.esMiTurno || props.juegoTerminado) {
+    methods: {
+        async realizarDisparo(evento) {
+            if (this.cargando || !this.esMiTurno || this.juegoTerminado) {
                 console.warn("Intento de disparo bloqueado:", {
-                    cargando: cargando.value,
-                    esMiTurno: props.esMiTurno,
-                    juegoTerminado: props.juegoTerminado,
+                    cargando: this.cargando,
+                    esMiTurno: this.esMiTurno,
+                    juegoTerminado: this.juegoTerminado,
                 });
-                mostrarMensaje(
+                this.mostrarMensaje(
                     "No puedes disparar en este momento",
                     "advertencia"
                 );
                 return;
             }
-
-            cargando.value = true;
-
-            console.log("Realizando disparo en:", evento.posicion);
-
+            this.cargando = true;
             try {
                 const response = await axios.post(
-                    `/partidas/${props.partida.id}/disparar`,
+                    `/partidas/${this.partida.id}/disparar`,
                     {
                         posicion: evento.posicion,
                     }
                 );
 
-                console.log("Respuesta del servidor:", response.data);
-
                 const data = response.data;
 
                 let textoMensaje = "";
                 let tipoMensaje = "exito";
+                console.log(data);
 
                 switch (data.resultado) {
                     case "agua":
@@ -309,39 +326,38 @@ export default {
                     textoMensaje += " ¡Has ganado la partida!";
                 }
 
-                mostrarMensaje(textoMensaje, tipoMensaje);
+                this.mostrarMensaje(textoMensaje, tipoMensaje);
 
-                console.log("Recargando solo `partida` vía Inertia...");
                 await Inertia.reload({
-                    only: ["partida"],
-                    onStart: () => console.log("Inertia.reload - inicio"),
-                    onFinish: () => console.log("Inertia.reload - finalizado"),
-                    onError: (err) =>
-                        console.error("Error durante reload:", err),
+                    only: ["partida", "ganador"],
+                    onStart: () => console.log(this.ganador),
+                    onFinish: () => console.log(this.ganador),
                 });
             } catch (error) {
-                console.error("Error al disparar:", error);
                 const errorMsg =
                     error.response?.data?.message ||
                     "Error al realizar el disparo";
-                mostrarMensaje(errorMsg, "error");
+                this.mostrarMensaje(errorMsg, "error");
             } finally {
-                cargando.value = false;
+                this.cargando = false;
             }
-        };
+        },
 
-        const manejarHover = (evento) => {
-            console.log("Hover en:", evento.posicion);
-        };
+        salirDelJuego() {
+            this.detenerPolling();
+            this.volverAPartidas();
+        },
 
-        const mostrarMensaje = (texto, tipo = "info") => {
-            mensaje.value = { texto, tipo };
+        manejarHover(evento) {},
+
+        mostrarMensaje(texto, tipo = "info") {
+            this.mensaje = { texto, tipo };
             setTimeout(() => {
-                mensaje.value = null;
-            }, 4000);
-        };
+                this.mensaje = null;
+            }, 6000);
+        },
 
-        const obtenerTextoResultado = (resultado) => {
+        obtenerTextoResultado(resultado) {
             switch (resultado) {
                 case "agua":
                     return "AGUA";
@@ -352,12 +368,12 @@ export default {
                 default:
                     return resultado?.toUpperCase() || "DESCONOCIDO";
             }
-        };
+        },
 
-        const actualizarJuego = () => {
-            if (cargando.value) return;
+        actualizarJuego() {
+            if (this.cargando) return;
 
-            cargando.value = true;
+            this.cargando = true;
             router.reload({
                 only: [
                     "miTablero",
@@ -369,20 +385,23 @@ export default {
                 ],
                 preserveScroll: true,
                 onFinish: () => {
-                    cargando.value = false;
+                    this.cargando = false;
                 },
             });
-        };
+        },
 
-        const volverAPartidas = () => {
+        volverAPartidas() {
             router.visit("/partidas/index");
-        };
+        },
 
-        const iniciarPolling = () => {
-            intervalId = setInterval(() => {
-                if (!cargando.value) {
-                    console.log("Polling activo. Solicitando datos...");
+        PartidaFinalizada() {
+            this.mostrarMensaje("¡La partida ha terminado!", "exito");
+            router.visit("/partidas/index");
+        },
 
+        iniciarPolling() {
+            this.intervalId = setInterval(() => {
+                if (!this.cargando) {
                     router.reload({
                         only: [
                             "miTablero",
@@ -393,68 +412,86 @@ export default {
                         ],
                         preserveScroll: true,
                         onFinish: () => {
-                            console.log("Polling reload terminado.");
-
-                            if (props.juegoTerminado) {
-                                clearInterval(intervalId);
-                                console.log(
-                                    "Juego terminado. Polling detenido."
-                                );
+                            if (this.juegoTerminado) {
+                                clearInterval(this.intervalId);
                             }
                         },
                     });
                 }
-            }, 5000);
-        };
+            }, 6000);
+        },
 
-        const detenerPolling = () => {
-            if (intervalId) {
-                clearInterval(intervalId);
-                intervalId = null;
+        detenerPolling() {
+            if (this.intervalId) {
+                clearInterval(this.intervalId);
+                this.intervalId = null;
             }
-        };
+        },
+    },
 
-        onMounted(() => {
-            console.log("Tablero montado:", {
-                partida: props.partida,
-                esMiTurno: props.esMiTurno,
-                juegoTerminado: props.juegoTerminado,
-            });
+    mounted() {
+    console.log("🎮 DATOS DEL JUEGO:", {
+        juegoTerminado: this.juegoTerminado,
+        ganador: this.ganador,
+        partidaEstado: this.partida?.estado,
+        partidaGanadorId: this.partida?.ganador_id,
+        
+    });
 
-            iniciarPolling();
+    console.log("Ganador recibido:", this.ganador);
+    console.log("Jugador actual:", this.jugadorActual.id);
+    
+    this.iniciarPolling();
+    
+    if (this.juegoTerminado) {
+        let textoGanador = "";
+        let tipoMensaje = "info";
 
-            if (props.esMiTurno && !props.juegoTerminado) {
-                mostrarMensaje(
-                    "¡Es tu turno! Haz click en el tablero enemigo para disparar",
-                    "info"
-                );
-            } else if (props.juegoTerminado) {
-                const textoGanador =
-                    props.ganador === "jugador"
-                        ? "¡Has ganado!"
-                        : "Has perdido";
-                mostrarMensaje(
-                    `Juego terminado. ${textoGanador}`,
-                    props.ganador === "jugador" ? "exito" : "error"
-                );
-            }
-        });
+        if (this.ganador === "jugador") {
+            textoGanador = "¡Felicitaciones! Has ganado la partida 🎉";
+            tipoMensaje = "exito";
+        } else if (this.ganador === "oponente") {
+            textoGanador = "Has perdido esta partida 😔";
+            tipoMensaje = "error";
+        } else {
+            textoGanador = "El juego ha terminado";
+            tipoMensaje = "info";
+        }
+        
 
-        onUnmounted(() => {
-            detenerPolling();
-        });
+        if (textoGanador) {
+            this.mostrarMensaje(textoGanador, tipoMensaje);
+        }
+    } else if (this.esMiTurno) {
+       
+        this.mostrarMensaje(
+            "¡Es tu turno! Haz click en el tablero enemigo para disparar",
+            "info"
+        );
+    }
+},
 
-        return {
-            mensaje,
-            cargando,
-            ultimosMovimientos,
-            realizarDisparo,
-            manejarHover,
-            mostrarMensaje,
-            obtenerTextoResultado,
-            actualizarJuego,
-            volverAPartidas,
-        };
+    unmounted() {
+        this.detenerPolling();
     },
 };
 </script>
+
+<style scoped>
+.tablero-container {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+    .tablero-container {
+        max-width: 420px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .tablero-container {
+        max-width: 450px;
+    }
+}
+</style>
