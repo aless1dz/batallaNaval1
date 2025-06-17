@@ -1,24 +1,18 @@
 <template>
-  <div class="grafica-css">
-    <div class="barra-container">
-      <span class="valor">{{ ganadas }}</span>
-      <span class="porcentaje-texto">{{ porcentajeGanadas.toFixed(0) }}%</span>
-      <div
-        class="barra ganadas"
-        :style="{ height: porcentajeGanadas + '%' }"
-        @click="$emit('barClick', 'ganadas')"
-      ></div>
-      <span class="etiqueta">Ganadas</span>
-    </div>
-    <div class="barra-container">
-      <span class="valor">{{ perdidas }}</span>
-      <span class="porcentaje-texto">{{ porcentajePerdidas.toFixed(0) }}%</span>
-      <div
-        class="barra perdidas"
-        :style="{ height: porcentajePerdidas + '%' }"
-        @click="$emit('barClick', 'perdidas')"
-      ></div>
-      <span class="etiqueta">Perdidas</span>
+  <div class="grafica-modern">
+    <div class="barra-container" v-for="(item, idx) in datos" :key="idx">
+      <span class="valor">{{ item.valor }}</span>
+      <div class="barra-outer">
+        <div
+          class="barra-inner"
+          :class="item.clase"
+          :style="{ height: item.porcentaje + '%' }"
+          @click="$emit('barClick', item.tipo)"
+        >
+          <span class="porcentaje">{{ item.porcentaje.toFixed(0) }}%</span>
+        </div>
+      </div>
+      <span class="etiqueta">{{ item.etiqueta }}</span>
     </div>
   </div>
 </template>
@@ -40,54 +34,118 @@ export default {
     porcentajePerdidas() {
       return (this.perdidas / this.total) * 100;
     },
+    datos() {
+      return [
+        {
+          tipo: 'ganadas',
+          valor: this.ganadas,
+          porcentaje: this.porcentajeGanadas,
+          clase: 'ganadas',
+          etiqueta: 'Ganadas',
+        },
+        {
+          tipo: 'perdidas',
+          valor: this.perdidas,
+          porcentaje: this.porcentajePerdidas,
+          clase: 'perdidas',
+          etiqueta: 'Perdidas',
+        },
+      ];
+    },
   },
 };
 </script>
 
 <style scoped>
-.grafica-css {
+.grafica-modern {
   display: flex;
-  gap: 40px;
+  gap: 48px;
   align-items: flex-end;
-  height: 220px;
-  margin: 40px 0;
+  justify-content: center;
+  height: 260px;
+  margin: 48px 0 32px 0;
+  background: linear-gradient(135deg, #f8fafc 60%, #e0e7ef 100%);
+  border-radius: 24px;
+  box-shadow: 0 6px 32px 0 rgba(60, 72, 100, 0.1);
+  padding: 32px 0;
 }
+
 .barra-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 80px;
-  height: 100%;
-  justify-content: flex-end;
+  width: 110px;
 }
+
 .valor {
-  color: #333;
-  font-weight: bold;
-  font-size: 1.5em;
-  margin-bottom: 8px;
+  color: #222;
+  font-weight: 700;
+  font-size: 2.1em;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
 }
-.porcentaje-texto {
-  color: #333;
-  font-weight: bold;
-  font-size: 1em;
-  margin-bottom: 4px;
+
+.barra-outer {
+  width: 70px;
+  height: 170px;
+  background: #e9ecef;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px 0 rgba(60, 72, 100, 0.07);
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 10px;
+  transition: background 0.3s;
 }
-.barra {
-  width: 60px;
-  transition: height 0.4s;
-  border-radius: 8px 8px 0 0;
-  margin-bottom: 8px;
-  display: block;
+
+.barra-inner {
+  width: 100%;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  min-height: 8px;
+  transition:
+    height 0.5s cubic-bezier(0.4, 2, 0.6, 1),
+    box-shadow 0.3s;
+  box-shadow: 0 4px 16px 0 rgba(60, 72, 100, 0.1);
+  will-change: height;
 }
-.ganadas {
-  background: #4caf50;
+
+.barra-inner.ganadas {
+  background: linear-gradient(135deg, #4ade80 60%, #16a34a 100%);
 }
-.perdidas {
-  background: #f44336;
+
+.barra-inner.perdidas {
+  background: linear-gradient(135deg, #f87171 60%, #b91c1c 100%);
 }
+
+.barra-inner:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 8px 24px 0 rgba(60, 72, 100, 0.18);
+}
+
+.porcentaje {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1em;
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  text-shadow: 0 2px 8px rgba(60, 72, 100, 0.18);
+  letter-spacing: 0.5px;
+  pointer-events: none;
+}
+
 .etiqueta {
-  margin-top: 10px;
-  font-weight: 500;
-  color: #333;
+  margin-top: 12px;
+  font-weight: 600;
+  color: #444;
+  font-size: 1.1em;
+  letter-spacing: 0.5px;
+  text-align: center;
+  text-transform: capitalize;
 }
 </style>

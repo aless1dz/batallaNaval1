@@ -1,32 +1,58 @@
 <template>
   <AuthenticatedLayout>
     <template #header>
-      <h1>Partidas {{ tipo === 'ganadas' ? 'Ganadas' : 'Perdidas' }}</h1>
+      <h1>
+        Partidas
+        <span v-if="tipo === 'ganadas'">Ganadas</span>
+        <span v-else>Perdidas</span>
+      </h1>
     </template>
     <div class="container">
       <table class="min-w-full border">
         <thead>
           <tr>
             <th class="border px-4 py-2">Nombre</th>
-            <th class="border px-4 py-2">Fecha</th>
+            <th class="border px-4 py-2">Oponente</th>
+            <th class="border px-4 py-2">Estado</th>
+            <th class="border px-4 py-2">Resultado</th>
             <th class="border px-4 py-2">Acción</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="partida in partidas" :key="partida.id">
-           <td class="border px-4 py-2">{{ partida.nombre }}</td>
-            <td class="border px-4 py-2">{{ new Date(partida.creada_en).toLocaleDateString() }}</td>
+            <td class="border px-4 py-2">{{ partida.nombre }}</td>
+            <td class="border px-4 py-2">{{ partida.oponente }}</td>
             <td class="border px-4 py-2">
-              <PrimaryButton @click="verDetalle(partida.id)">
-                Ver Detalles
-              </PrimaryButton>
+              <span v-if="partida.estado === 'en_curso'" class="text-green-600 font-bold">En curso</span>
+              <span v-else-if="partida.estado === 'finalizada'" class="text-gray-600">Finalizada</span>
+              <span v-else class="text-yellow-600">Esperando</span>
+            </td>
+            <td class="border px-4 py-2">
+              <span v-if="partida.resultado === 'Ganada'" class="text-green-600 font-bold">Ganada</span>
+              <span v-else-if="partida.resultado === 'Perdida'" class="text-red-600 font-bold">Perdida</span>
+              <span v-else>-</span>
+            </td>
+            <td class="border px-4 py-2">
+              <Link
+                :href="route('estadisticas.detalle', [partida.id]) + '?from=' + tipo"
+                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+              >
+                Ver detalles
+              </Link>
+              <Link
+                    v-if="partida.estado === 'en_curso'"
+                    :href="route('juego.tablero', partida.id)"
+                    class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                >
+                    Unirse
+                </Link>
             </td>
           </tr>
         </tbody>
       </table>
       <Link :href="route('estadisticas.index')" class="inline-block mt-4">
         <PrimaryButton>
-          Volver a gráfica
+          Volver a estadísticas
         </PrimaryButton>
       </Link>
     </div>
@@ -37,7 +63,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Link } from '@inertiajs/vue3';
-import { router } from '@inertiajs/vue3';
 
 export default {
   components: {
@@ -48,11 +73,6 @@ export default {
   props: {
     partidas: Array,
     tipo: String,
-  },
-  methods: {
-    verDetalle(id) {
-      router.get(`/estadisticas/partida/${id}`, { tipo: this.tipo });
-    },
   },
 };
 </script>

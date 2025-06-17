@@ -39,15 +39,50 @@ class EstadisticasController extends Controller
     public function partidas($tipo)
     {
         $userId = Auth::id();
+
         if ($tipo === 'ganadas') {
-            $partidas = Partida::where('ganador_id', $userId)->get();
+            $partidas = Partida::where('estado', 'finalizada')
+                ->where('ganador_id', $userId)
+                ->whereHas('jugadores', function($q) use ($userId) {
+                    $q->where('id_usuario', $userId);
+                })
+                ->with(['jugadores.usuario'])
+                ->orderByDesc('created_at')
+                ->get();
         } else {
-            $partidas = Partida::whereHas('jugadores', function($q) use ($userId) {
-                $q->where('id_usuario', $userId);
-            })
-            ->where('ganador_id', '!=', $userId)
-            ->get();
+            $partidas = Partida::where('estado', 'finalizada')
+                ->whereHas('jugadores', function($q) use ($userId) {
+                    $q->where('id_usuario', $userId);
+                })
+                ->where('ganador_id', '!=', $userId)
+                ->with(['jugadores.usuario'])
+                ->orderByDesc('created_at')
+                ->get();
         }
+
+       
+        $partidas = $partidas->map(function($partida) use ($userId) {
+            $resultado = null;
+            if ($partida->estado === 'finalizada') {
+                $resultado = $partida->ganador_id == $userId ? 'Ganada' : 'Perdida';
+            }
+
+            $oponente = $partida->jugadores
+                ->filter(function($jugador) use ($userId) {
+                    return $jugador->id_usuario != $userId;
+                })
+                ->first();
+
+            return [
+                'id' => $partida->id,
+                'nombre' => $partida->nombre,
+                'estado' => $partida->estado,
+                'resultado' => $resultado,
+                'oponente' => ($oponente && $oponente->usuario) ? $oponente->usuario->name : 'Sin oponente',
+                'created_at' => $partida->created_at,
+            ];
+        });
+
         return Inertia::render('Estadisticas/Partidas', [
             'partidas' => $partidas,
             'tipo' => $tipo,
