@@ -1,3 +1,4 @@
+
 <template>
   <AuthenticatedLayout>
     <template #header>
@@ -9,27 +10,13 @@
         :key="jugador.id"
         class="tablero-container"
       >
-        <h3>Tablero de {{ jugador.usuario.name || jugador.usuario.nombre_usuario }}</h3>
-        <div class="tablero">
-          <div v-for="fila in tableroPorJugador[jugador.id]?.grilla" :key="fila[0]?.fila" class="fila">
-            <div
-              v-for="celda in fila"
-              :key="celda.columna"
-              class="celda"
-              :class="{
-                barco: celda.tieneBarco,
-                disparo: celda.disparado,
-                impacto: celda.impacto,
-                hundido: celda.hundido
-              }"
-            >
-              
-              <span v-if="celda.impacto">💥</span>
-              <span v-else-if="celda.tieneBarco">🚢</span>
-              <span v-else-if="celda.disparado">•</span>
-            </div>
-          </div>
-        </div>
+        <TableroVisual
+          :nombre-jugador="jugador.usuario.name || jugador.usuario.nombre_usuario"
+          :barcos="jugador.barcos"
+          :movimientos="jugador.movimientos_defensor"
+          :es-propio="false"
+          :mostrar-barcos="true"
+        />
       </div>
     </div>
     <PrimaryButton class="mt-4" @click="volver">
@@ -159,3 +146,32 @@ export default {
   background: gold;
 }
 </style>
+        <script>
+        import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+        import PrimaryButton from '@/Components/PrimaryButton.vue';
+        import TableroVisual from '@/Pages/Juegos/Tablero.vue'; // Usa el componente visual
+        import { router } from '@inertiajs/vue3';
+        
+        export default {
+          components: {
+            AuthenticatedLayout,
+            PrimaryButton,
+            TableroVisual,
+          },
+          props: {
+            partida: Object,
+            from: String,
+          },
+          methods: {
+            volver() {
+              if (this.from === 'mis-partidas') {
+                router.get('/mis-partidas');
+              } else if (this.from === 'ganadas' || this.from === 'perdidas') {
+                router.get(`/estadisticas/partidas/${this.from}`);
+              } else {
+                router.get('/mis-partidas');
+              }
+            },
+          },
+        };
+        </script>

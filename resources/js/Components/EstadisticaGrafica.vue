@@ -1,23 +1,23 @@
 <template>
   <div class="grafica-css">
     <div class="barra-container">
+      <span class="valor">{{ ganadas }}</span>
+      <span class="porcentaje-texto">{{ porcentajeGanadas.toFixed(0) }}%</span>
       <div
         class="barra ganadas"
         :style="{ height: porcentajeGanadas + '%' }"
         @click="$emit('barClick', 'ganadas')"
-      >
-        <span class="valor">{{ ganadas }}</span>
-      </div>
+      ></div>
       <span class="etiqueta">Ganadas</span>
     </div>
     <div class="barra-container">
+      <span class="valor">{{ perdidas }}</span>
+      <span class="porcentaje-texto">{{ porcentajePerdidas.toFixed(0) }}%</span>
       <div
         class="barra perdidas"
         :style="{ height: porcentajePerdidas + '%' }"
         @click="$emit('barClick', 'perdidas')"
-      >
-        <span class="valor">{{ perdidas }}</span>
-      </div>
+      ></div>
       <span class="etiqueta">Perdidas</span>
     </div>
   </div>
@@ -57,28 +57,33 @@ export default {
   flex-direction: column;
   align-items: center;
   width: 80px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.valor {
+  color: #333;
+  font-weight: bold;
+  font-size: 1.5em;
+  margin-bottom: 8px;
+}
+.porcentaje-texto {
+  color: #333;
+  font-weight: bold;
+  font-size: 1em;
+  margin-bottom: 4px;
 }
 .barra {
   width: 60px;
   transition: height 0.4s;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  cursor: pointer;
   border-radius: 8px 8px 0 0;
-  position: relative;
+  margin-bottom: 8px;
+  display: block;
 }
 .ganadas {
   background: #4caf50;
 }
 .perdidas {
   background: #f44336;
-}
-.valor {
-  color: #fff;
-  font-weight: bold;
-  margin-bottom: 8px;
-  font-size: 1.2em;
 }
 .etiqueta {
   margin-top: 10px;

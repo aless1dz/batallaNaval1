@@ -122,6 +122,9 @@
                     <Link :href="route('partidas.mis')" class="block px-4 py-2 hover:bg-gray-100">
                     Mis Partidas
                     </Link>
+                    <Link :href = "route('estadisticas.index')" class="block px-4 py-2 hover:bg-gray-100">
+                    Estadísticas
+                    </Link>
 
                     <!-- Settings Section -->
                     <div class="mt-8">
