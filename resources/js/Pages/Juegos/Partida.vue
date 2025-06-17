@@ -106,7 +106,6 @@
                             :juego-terminado="juegoTerminado"
                             :ganador="ganador"
                             @disparar="realizarDisparo"
-                            @celda-hover="manejarHover"
                         />
                     </div>
                 </div>
@@ -203,7 +202,6 @@
 
 <script>
 import { router } from "@inertiajs/vue3";
-import { Inertia } from "@inertiajs/inertia";
 import Tablero from "../../Components/Tablero.vue";
 import axios from "axios";
 
@@ -328,7 +326,7 @@ export default {
 
                 this.mostrarMensaje(textoMensaje, tipoMensaje);
 
-                await Inertia.reload({
+                await router.reload({
                     only: ["partida", "ganador"],
                     onStart: () => console.log(this.ganador),
                     onFinish: () => console.log(this.ganador),
@@ -430,17 +428,6 @@ export default {
     },
 
     mounted() {
-    console.log("🎮 DATOS DEL JUEGO:", {
-        juegoTerminado: this.juegoTerminado,
-        ganador: this.ganador,
-        partidaEstado: this.partida?.estado,
-        partidaGanadorId: this.partida?.ganador_id,
-        
-    });
-
-    console.log("Ganador recibido:", this.ganador);
-    console.log("Jugador actual:", this.jugadorActual.id);
-    
     this.iniciarPolling();
     
     if (this.juegoTerminado) {
@@ -448,10 +435,10 @@ export default {
         let tipoMensaje = "info";
 
         if (this.ganador === "jugador") {
-            textoGanador = "¡Felicitaciones! Has ganado la partida 🎉";
+            textoGanador = "¡Felicitaciones! Has ganado la partida ";
             tipoMensaje = "exito";
         } else if (this.ganador === "oponente") {
-            textoGanador = "Has perdido esta partida 😔";
+            textoGanador = "Has perdido esta partida ";
             tipoMensaje = "error";
         } else {
             textoGanador = "El juego ha terminado";
