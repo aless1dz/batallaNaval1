@@ -129,7 +129,7 @@
                         ]"
                         @click="closeSidebarOnMobile"
                     >
-                      >
+                      
                         <svg
                             class="mr-3 h-6 w-6"
                             :class=" [

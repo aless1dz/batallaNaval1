@@ -1,25 +1,70 @@
-
 <template>
   <AuthenticatedLayout>
     <template #header>
       <h1>Detalle de Partida #{{ partida.id }}</h1>
     </template>
-    <div class="flex gap-8">
-      <div
-        v-for="jugador in partida.jugadores"
-        :key="jugador.id"
-        class="tablero-container"
-      >
-        <TableroVisual
-          :nombre-jugador="jugador.usuario.name || jugador.usuario.nombre_usuario"
-          :barcos="jugador.barcos"
-          :movimientos="jugador.movimientos_defensor"
-          :es-propio="false"
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      
+      <div v-if="miJugador">
+        <h2 class="text-lg font-bold mb-2">Tu tablero ({{ miJugador.usuario.name }})</h2>
+        <Tablero
+          :es-propio="true"
+          :nombre-jugador="miJugador.usuario.name"
+          :posiciones-barcos="miJugador.barcos ? miJugador.barcos.map(b => b.coordenada) : []"
+          :disparos="miJugador.movimientos_defensor
+            ? miJugador.movimientos_defensor.map(m => ({
+                posicion: m.coordenada,
+                impacto: m.acierto,
+                hundido: m.hundido,
+                resultado: m.hundido ? 'hundido' : (m.acierto ? 'impacto' : 'agua')
+              }))
+            : []"
+          :puede-disparar="false"
           :mostrar-barcos="true"
+          :mostrar-info="false"
         />
+        <h3 class="mt-4 font-semibold">Movimientos recibidos:</h3>
+        <ul class="text-sm list-disc ml-5">
+          <li v-for="(mov, idx) in miJugador.movimientos_defensor" :key="idx">
+            {{ mov.coordenada }} - 
+            <span :class="mov.acierto ? 'text-green-600' : 'text-blue-600'">
+              {{ mov.acierto ? (mov.hundido ? 'Hundido' : 'Impacto') : 'Agua' }}
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      
+      <div v-if="oponenteJugador">
+        <h2 class="text-lg font-bold mb-2">Tablero de {{ oponenteJugador.usuario.name }}</h2>
+        <Tablero
+          :es-propio="false"
+          :nombre-jugador="oponenteJugador.usuario.name"
+          :posiciones-barcos="oponenteJugador.barcos ? oponenteJugador.barcos.map(b => b.coordenada) : []"
+          :disparos="oponenteJugador.movimientos_defensor
+            ? oponenteJugador.movimientos_defensor.map(m => ({
+                posicion: m.coordenada,
+                impacto: m.acierto,
+                hundido: m.hundido,
+                resultado: m.hundido ? 'hundido' : (m.acierto ? 'impacto' : 'agua')
+              }))
+            : []"
+          :puede-disparar="false"
+          :mostrar-barcos="true"
+          :mostrar-info="false"
+        />
+        <h3 class="mt-4 font-semibold">Movimientos recibidos:</h3>
+        <ul class="text-sm list-disc ml-5">
+          <li v-for="(mov, idx) in oponenteJugador.movimientos_defensor" :key="idx">
+            {{ mov.coordenada }} - 
+            <span :class="mov.acierto ? 'text-green-600' : 'text-blue-600'">
+              {{ mov.acierto ? (mov.hundido ? 'Hundido' : 'Impacto') : 'Agua' }}
+            </span>
+          </li>
+        </ul>
       </div>
     </div>
-    <PrimaryButton class="mt-4" @click="volver">
+    <PrimaryButton class="mt-8" @click="volver">
       Volver a partidas
     </PrimaryButton>
   </AuthenticatedLayout>
@@ -28,85 +73,44 @@
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import Tablero from '@/models/tablero.js';
+import Tablero from '@/Components/Tablero.vue';
 import { router } from '@inertiajs/vue3';
 
 export default {
   components: {
     AuthenticatedLayout,
     PrimaryButton,
+    Tablero,
   },
   props: {
     partida: Object,
-    tipo: String,
     from: String,
   },
-  data() {
-    return {
-      tableroPorJugador: {},
-    };
-  },
-  mounted() {
-    this.generarTableros();
-  },
-  methods: {
-  volver() {
-    if (this.from === 'mis-partidas') {
-      router.get('/mis-partidas');
-    } else if (this.from === 'ganadas' || this.from === 'perdidas') {
-      router.get(`/estadisticas/partidas/${this.from}`);
-    } else {
-      router.get('/mis-partidas'); 
-    }
-  },
-    generarTableros() {
-      
-      this.tableroPorJugador = {};
-      this.partida.jugadores.forEach(jugador => {
-        const tablero = new Tablero(10);
-
-        
-        jugador.barcos.forEach(barco => {
-          
-          const fila = "ABCDEFGHIJ".indexOf(barco.coordenada[0]);
-          const columna = parseInt(barco.coordenada.slice(1), 10) - 1;
-          if (fila >= 0 && columna >= 0) {
-            tablero.grilla[fila][columna].tieneBarco = true;
-            tablero.grilla[fila][columna].hundido = barco.hundido;
-          }
-        });
-
-       
-        if (jugador.movimientos_defensor) {
-          jugador.movimientos_defensor.forEach(mov => {
-            const fila = "ABCDEFGHIJ".indexOf(mov.coordenada[0]);
-            const columna = parseInt(mov.coordenada.slice(1), 10) - 1;
-            if (fila >= 0 && columna >= 0) {
-              tablero.grilla[fila][columna].disparado = true;
-              tablero.grilla[fila][columna].impacto = mov.acierto;
-            }
-          });
-        }
-
-        this.tableroPorJugador[jugador.id] = tablero;
-      });
+  computed: {
+    miJugador() {
+      return this.partida.jugadores.find(j => j.usuario.id === this.$page.props.auth.user.id);
+    },
+    oponenteJugador() {
+      return this.partida.jugadores.find(j => j.usuario.id !== this.$page.props.auth.user.id);
     },
   },
-  watch: {
-    partida: {
-      handler() {
-        this.generarTableros();
-      },
-      deep: true,
-      immediate: true,
+  methods: {
+    volver() {
+      if (this.from === 'mis-partidas') {
+        router.get('/mis-partidas');
+      } else if (this.from === 'ganadas' || this.from === 'perdidas') {
+        router.get(`/estadisticas/partidas/${this.from}`);
+      } else {
+        router.get('/mis-partidas');
+      }
     },
   },
 };
 </script>
 
 <style scoped>
-.flex {
-  display: flex;
+.grid {
+  display: grid;
   gap: 2rem;
 }
 .tablero-container {
