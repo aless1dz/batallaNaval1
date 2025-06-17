@@ -69,7 +69,7 @@ export default {
     } else if (this.from === 'ganadas' || this.from === 'perdidas') {
       router.get(`/estadisticas/partidas/${this.from}`);
     } else {
-      router.get('/mis-partidas'); // fallback
+      router.get('/mis-partidas'); 
     }
   },
     generarTableros() {
