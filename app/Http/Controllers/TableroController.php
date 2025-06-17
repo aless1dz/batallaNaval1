@@ -27,9 +27,10 @@ class TableroController extends Controller
                     ->withErrors(['error' => 'No tienes acceso a esta partida.']);
             }
             
-            if ($partida->estado !== 'en_curso') {
-                return redirect()->route('partidas.espera', $id)
-                    ->with('info', 'La partida aún no ha comenzado.');
+
+            if ($partida->estado !== 'en_curso' && $partida->estado !== 'finalizada') {
+            return redirect()->route('partidas.espera', $id)
+                ->with('info', 'La partida aún no ha comenzado.');
             }
 
             $jugadores = JugadorPartida::where('id_partida', $partida->id)
@@ -61,6 +62,8 @@ class TableroController extends Controller
             
             $misMovimientos = $todosMovimientos->where('id_atacante', $jugadorActual->id);
             $movimientosOponente = $todosMovimientos->where('id_defensor', $jugadorActual->id);
+
+            
 
             
             $estadisticasMias = [
@@ -104,7 +107,7 @@ class TableroController extends Controller
                 
                 'esMiTurno' => $jugadorActual->es_turno,
                 'juegoTerminado' => $partida->estado === 'finalizada',
-                'ganador' => $partida->ganador_id == $jugadorActual->id ? 'jugador' : ($partida->estado === 'finalizada' ? 'oponente' : null)
+                'ganador' => $partida->ganador_id == $jugadorActual->id_usuario ? 'jugador' : ($partida->estado === 'finalizada' ? 'oponente' : null)
             ]);
             
         } catch (\Exception $e) {
@@ -119,7 +122,7 @@ class TableroController extends Controller
     }
 
     private function formatearDisparos($movimientos)
-{
+    {
     if (empty($movimientos) || !method_exists($movimientos, 'map')) {
         return [];
     }
@@ -159,100 +162,100 @@ class TableroController extends Controller
         'posicion.regex' => 'Formato de posición inválido (debe ser A1-J10)'
     ]);
 
-    try {
-        $partida = Partida::findOrFail($id);
+        try {
+            $partida = Partida::findOrFail($id);
 
-        if ($partida->estado !== 'en_curso') {
-            return response()->json(['error' => 'La partida no está en curso'], 400);
-        }
+            if ($partida->estado !== 'en_curso') {
+                return response()->json(['error' => 'La partida no está en curso'], 400);
+            }
 
-        $jugadorActual = JugadorPartida::where('id_partida', $id)
-            ->where('id_usuario', Auth::id())
-            ->first();
+            $jugadorActual = JugadorPartida::where('id_partida', $id)
+                ->where('id_usuario', Auth::id())
+                ->first();
 
-        if (!$jugadorActual) {
-            return response()->json(['error' => 'No tienes acceso a esta partida'], 403);
-        }
+            if (!$jugadorActual) {
+                return response()->json(['error' => 'No tienes acceso a esta partida'], 403);
+            }
 
-        if (!$jugadorActual->es_turno) {
-            return response()->json(['error' => 'No es tu turno'], 400);
-        }
+            if (!$jugadorActual->es_turno) {
+                return response()->json(['error' => 'No es tu turno'], 400);
+            }
 
-        $oponente = JugadorPartida::where('id_partida', $id)
-            ->where('id_usuario', '!=', Auth::id())
-            ->first();
+            $oponente = JugadorPartida::where('id_partida', $id)
+                ->where('id_usuario', '!=', Auth::id())
+                ->first();
 
-        if (!$oponente) {
-            return response()->json(['error' => 'No se encontró el oponente'], 400);
-        }
+            if (!$oponente) {
+                return response()->json(['error' => 'No se encontró el oponente'], 400);
+            }
 
-        $yaDisparo = Movimiento::where([
-            ['id_partida', $id],
-            ['id_atacante', $jugadorActual->id],
-            ['id_defensor', $oponente->id],
-            ['coordenada', $request->posicion]
-        ])->exists();
+            $yaDisparo = Movimiento::where([
+                ['id_partida', $id],
+                ['id_atacante', $jugadorActual->id],
+                ['id_defensor', $oponente->id],
+                ['coordenada', $request->posicion]
+            ])->exists();
 
-        if ($yaDisparo) {
-            return response()->json(['error' => 'Ya disparaste a esa posición'], 400);
-        }
+            if ($yaDisparo) {
+                return response()->json(['error' => 'Ya disparaste a esa posición'], 400);
+            }
 
-        $barcoImpactado = Barco::where('id_jugador_partida', $oponente->id)
-            ->where('coordenada', $request->posicion)
-            ->where('hundido', false)
-            ->first();
+            $barcoImpactado = Barco::where('id_jugador_partida', $oponente->id)
+                ->where('coordenada', $request->posicion)
+                ->where('hundido', false)
+                ->first();
 
-        $acierto = (bool) $barcoImpactado;
-        $resultado = $acierto ? 'impacto' : 'agua';
+            $acierto = (bool) $barcoImpactado;
+            $resultado = $acierto ? 'impacto' : 'agua';
 
-        if ($barcoImpactado) {
-            $barcoImpactado->update(['hundido' => true]);
-            $resultado = 'hundido';
-        }
+            if ($barcoImpactado) {
+                $barcoImpactado->update(['hundido' => true]);
+                $resultado = 'hundido';
+            }
 
-        Movimiento::create([
-            'id_partida' => $id,
-            'id_atacante' => $jugadorActual->id,
-            'id_defensor' => $oponente->id,
-            'coordenada' => $request->posicion,
-            'acierto' => $acierto
-        ]);
-
-        
-        $jugadorActual->update(['es_turno' => false]);
-        $oponente->update(['es_turno' => true]);
-
-        $barcosRestantes = Barco::where('id_jugador_partida', $oponente->id)
-            ->where('hundido', false)
-            ->count();
-
-        $juegoTerminado = $barcosRestantes === 0;
-
-        if ($juegoTerminado) {
-            $partida->update([
-                'estado' => 'finalizada',
-                'ganador_id' => $jugadorActual->id_usuario
+            Movimiento::create([
+                'id_partida' => $id,
+                'id_atacante' => $jugadorActual->id,
+                'id_defensor' => $oponente->id,
+                'coordenada' => $request->posicion,
+                'acierto' => $acierto
             ]);
+
+            
+            $jugadorActual->update(['es_turno' => false]);
+            $oponente->update(['es_turno' => true]);
+
+            $barcosRestantes = Barco::where('id_jugador_partida', $oponente->id)
+                ->where('hundido', false)
+                ->count();
+
+            $juegoTerminado = $barcosRestantes === 0;
+
+            if ($juegoTerminado) {
+                $partida->update([
+                    'estado' => 'finalizada',
+                    'ganador_id' => $jugadorActual->id_usuario
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'resultado' => $resultado,
+                'posicion' => $request->posicion,
+                'juegoTerminado' => $juegoTerminado,
+                'esMiTurno' => false, 
+                'mensaje' => $this->obtenerMensajeResultado($resultado, $request->posicion),
+                'barcosRestantes' => $barcosRestantes,
+                'turnoActual' => $oponente->id 
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Ocurrió un error inesperado',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'resultado' => $resultado,
-            'posicion' => $request->posicion,
-            'juegoTerminado' => $juegoTerminado,
-            'esMiTurno' => false, 
-            'mensaje' => $this->obtenerMensajeResultado($resultado, $request->posicion),
-            'barcosRestantes' => $barcosRestantes,
-            'turnoActual' => $oponente->id 
-        ]);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => 'Ocurrió un error inesperado',
-            'message' => $e->getMessage()
-        ], 500);
     }
-}
 
     private function obtenerMensajeResultado($resultado, $posicion)
     {
