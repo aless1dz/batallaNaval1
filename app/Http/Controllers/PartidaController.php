@@ -224,6 +224,7 @@ class PartidaController extends Controller
         return redirect()->route('dashboard')->with('success', 'Has salido de la partida.');
     }
 
+
     public function misPartidas()
     {
         $usuarioId = Auth::id();
@@ -239,11 +240,19 @@ class PartidaController extends Controller
                 if ($partida->estado === 'finalizada') {
                     $resultado = $partida->ganador_id == $usuarioId ? 'Ganada' : 'Perdida';
                 }
+
+                $oponente = $partida->jugadores
+                    ->filter(function($jugador) use ($usuarioId) {
+                        return $jugador->id_usuario != $usuarioId;
+                    })
+                    ->first();
+
                 return [
                     'id' => $partida->id,
                     'nombre' => $partida->nombre,
                     'estado' => $partida->estado,
                     'resultado' => $resultado,
+                    'oponente' => ($oponente && $oponente->usuario) ? $oponente->usuario->name : 'Sin oponente',
                     'created_at' => $partida->created_at,
                 ];
             });

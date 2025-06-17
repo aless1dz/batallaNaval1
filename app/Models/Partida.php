@@ -40,7 +40,7 @@ class Partida extends Model
             User::class,
             'jugadores_partida',
             'id_partida',
-            'id_usuario' // CORREGIDO: era 'id_usuario' no 'id_user'
+            'id_usuario' 
         );
     }
 

@@ -8,6 +8,7 @@
         <thead>
           <tr>
             <th class="border px-4 py-2">Nombre</th>
+            <th class="border px-4 py-2">Oponente</th>
             <th class="border px-4 py-2">Estado</th>
             <th class="border px-4 py-2">Resultado</th>
             <th class="border px-4 py-2">Acción</th>
@@ -16,6 +17,7 @@
         <tbody>
           <tr v-for="partida in partidas" :key="partida.id">
             <td class="border px-4 py-2">{{ partida.nombre }}</td>
+            <td class="border px-4 py-2">{{ partida.oponente }}</td>
             <td class="border px-4 py-2">
               <span v-if="partida.estado === 'en_curso'" class="text-green-600 font-bold">En curso</span>
               <span v-else-if="partida.estado === 'finalizada'" class="text-gray-600">Finalizada</span>
@@ -28,7 +30,7 @@
             </td>
             <td class="border px-4 py-2">
                 <Link
-                    v-if="partida.estado === 'en_progreso'"
+                    v-if="partida.estado === 'en_curso'"
                     :href="route('juego.tablero', partida.id)"
                     class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
                 >
